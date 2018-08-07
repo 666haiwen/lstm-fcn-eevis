@@ -4,7 +4,7 @@
 2. sampleData是对data数据经过初步筛选后得到的结果，筛选条件为数据是否完全
 3. sampling是对sampleData进行采样后得到的结果
 
-##文件结构
+## 文件结构
 datafiles\
     1\          不同的潮流断面,可以看做是一大部分samples的集合
         data\   存放标记数据
