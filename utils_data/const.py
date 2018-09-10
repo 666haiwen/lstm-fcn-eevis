@@ -5,3 +5,9 @@ ENTROPY_RANGE = 20
 # const variable for sampling
 SAMPLE_THRESHOLD = 0.75
 SAMPLE_RATE = 0.25
+NO_FILLING = 1    # 1 means no zero filling
+                  # 0 means with zeor filling
+
+# data management files
+TENSORE_FILE = 'tensor2D.txt'
+TIMES_EXPANSION = 50

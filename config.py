@@ -10,9 +10,9 @@ cfg = _C
 
 _C.PROJECT_DIR = osp.dirname(__file__)
 
-_C.TIME_STEPS = 501 #501
+_C.TIME_STEPS = 2001 #501
 
-_C.FEATURES = 95 #380*0.25  # 540
+_C.FEATURES = 475 #1902 * 0.25 #380*0.25  # 540
 
 """ #################################################################
     Data parameters
@@ -21,19 +21,19 @@ _C.DATA = edict()
 
 # Data in this directory is belong to 20 grids
 if Windows:
-    _C.DATA.ROOT_DIR = "F:/Workspace/LSTM/MLSTM-src/sampling"
+    _C.DATA.ROOT_DIR = "G:/LSTM-EEVIS/samples"
 else:
     _C.DATA.ROOT_DIR = "/data"
 
 _C.DATA.OBJ_FILE = "tensor2D.txt"
 
-_C.DATA.LAB_FILE = "data/fault_mark.json"
+_C.DATA.LAB_FILE = "data/_fault_mark.json"
 
 _C.DATA.FAKE_FILE = "data/tensor2D_normal_*.txt"
 
-_C.DATA.NUM_CLASSES = 25
+_C.DATA.NUM_CLASSES = 2180
 
-_C.DATA.FAKE_CLASS = 283
+_C.DATA.FAKE_CLASS = 2181
 
 _C.DATA.PREFIX = "grid"
 
@@ -53,11 +53,11 @@ _C.TRAIN = edict()
 
 _C.TRAIN.EPOCHS = 250
 
-_C.TRAIN.BATCH_SIZE = 128
+_C.TRAIN.BATCH_SIZE =  128 #128
 
-_C.TRAIN.LR = 1e-3  # 1e-3 before
+_C.TRAIN.LR = 1e-4  # 1e-3 before
 
-_C.TRAIN.MIN_LR = 1e-6 # 1e-4 before
+_C.TRAIN.MIN_LR = 1e-7 # 1e-4 before
 
 _C.TRAIN.WORKERS = 4
 
@@ -68,7 +68,7 @@ _C.TRAIN.MAX_QUEUE_SIZE = 20
 """
 _C.TEST = edict()
 
-_C.TEST.BATCH_SIZE = 64
+_C.TEST.BATCH_SIZE = 128 #64
 
 _C.TEST.MAX_QUEUE_SIZE = 20
 

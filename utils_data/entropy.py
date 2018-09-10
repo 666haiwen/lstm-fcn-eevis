@@ -1,20 +1,12 @@
 import math
 import sys
 import json
+import os
 import matplotlib.pyplot as plt
 import numpy as np
-import const as gl
-
-
-def print_node_fre(node, node_id, data):
-    print('node id:', node_id)
-    print('range: [{}, {}], variance: {},\n businfo: {}'.format(
-        min(data), max(data), np.std(data) ** 2, bus_info[bus_distance[node_id] - 1]))
-    fre = np.zeros(shape=(gl.SPLIT_RANGE))
-    for x_value in node:
-        fre[int(x_value)] += 1
-    print('entropy freq:\n', fre)
-    print()
+sys.path.append(os.getcwd())
+import utils_data.const as gl
+import data_parse.const as test
 
 
 def get_range(data):
@@ -97,13 +89,10 @@ def cal_entropy(data):
 
 
 def entropy_test():
-    path = r"F:/Workspace/LSTM/MLSTM-src/sampleData/1/51/tensor2D.txt"
-    bus_path = r"F:/Workspace/LSTM/MLSTM-src/data/1/data/bus_info.json"
-    distance = r"F:/Workspace/LSTM/MLSTM-src/sampleData/1/51/bus_distance_info.json"
-    f = open(bus_path, encoding='utf-8')
-    bus_info = json.load(f)
-    f = open(distance, encoding='utf-8')
-    bus_distance = json.load(f)
+    path = test.ORIGNIL_SAMPLE_PATH + 'ST_2/tensor2D.txt'
     data = np.loadtxt(path)
     entropy, threshold = cal_entropy(data)
     print(entropy, threshold)
+
+
+# entropy_test()

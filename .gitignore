@@ -1,6 +1,9 @@
 /data
 /history
 /sampleData
-/sampling
+/original_sample
+/samples
+/samples_another_half
+/logs
 /.vscode
 __pycache__

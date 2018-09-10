@@ -7,7 +7,7 @@ from config import cfg
 
 
 def squeeze_excite_block(input):
-    ''' Create a squeeze-excite block
+    """ Create a squeeze-excite block
     Params
     ------
     `input`: input tensor
@@ -15,7 +15,7 @@ def squeeze_excite_block(input):
     Returns 
     -------
     a keras tensor
-    '''
+    """
     filters = input._keras_shape[-1] # channel_axis = -1 for TF
 
     se = GlobalAveragePooling1D()(input)
@@ -65,7 +65,7 @@ def generate_model():
 def generate_attention_model():
     ip = Input(shape=(cfg.TIME_STEPS, cfg.FEATURES))
 
-    ''' sabsample timesteps to prevent OOM due to Attention LSTM '''
+    """ sabsample timesteps to prevent OOM due to Attention LSTM """
     stride = 3
 
     x = Permute((2, 1))(ip)

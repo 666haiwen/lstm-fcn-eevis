@@ -4,12 +4,15 @@ import json
 import logging
 import os
 import os.path as osp
+import sys
 from datetime import datetime
 from glob import glob
 from time import localtime, strftime, time
 import numpy as np
-import const as gl
-from entropy import cal_entropy
+sys.path.append(os.getcwd())
+from utils_data.const import SAMPLE_RATE
+from utils_data.entropy import cal_entropy
+import data_parse.const as gl
 
 
 class MyFormatter(logging.Formatter):
@@ -58,42 +61,38 @@ def create_logger(log_file=None, ternimal=True, outfile=True):
     return logger
 
 
-def sampling(_data, degrees, bus_distance):
-    '''Sampling data
+def sampling(_data):
+    """Sampling data
 
     Params
     ------
-    data : np.ndarray with data from "tensor2D.txt"
+    _data : np.ndarray with data from "tensor2D.txt"
     sampling_rate : sampling rate of data
 
     Returns
     -------
     data : np.ndarray after sampling
-    '''
-    if gl.SAMPLE_RATE == 1.0:
+    """
+    if SAMPLE_RATE == 1.0:
         return _data
     data = _data.copy()
     node_numbers = data.shape[1]
-    delete_shape = int(node_numbers * (1 - gl.SAMPLE_RATE))
-
+    delete_shape = node_numbers - int(node_numbers * SAMPLE_RATE)
     entropy, threshold = cal_entropy(data)
-    short_node = set(filter(lambda index: entropy[index] < threshold, range(node_numbers)))
+    short_node = set(filter(lambda index: entropy[index] < threshold and index > 1, range(node_numbers)))
     # len of short_node is uncertain since threshold value may not unique
     delete_shape -= len(short_node)
     remaning_node = list(set([i for i in range(node_numbers)]) - short_node)
     remaning_size = len(remaning_node)
     delete_sampling = set()
     while len(delete_sampling) < delete_shape:
-        delete_sampling.add(np.random.randint(0, remaning_size))
+        delete_sampling.add(remaning_node[np.random.randint(2, remaning_size)])
 
-    id_and_degree = np.zeros(shape=(2, node_numbers))
-    for i in range(node_numbers):
-        id_and_degree[0][i] = bus_distance[i]
-        id_and_degree[1][i] = degrees[bus_distance[i]]
-    delete_node = []
-    for node_id in delete_sampling:
-        delete_node.append(remaning_node[node_id])
-    delete_node += short_node
+    # id_and_degree = np.zeros(shape=(2, node_numbers))
+    # for i in range(node_numbers):
+    #     id_and_degree[0][i] = bus_distance[i]
+    #     id_and_degree[1][i] = degrees[bus_distance[i]]
+
     # sampling with zero filling
     # zero_node = np.zeros(shape=(data.shape[0]))
     # for i in delete_node:
@@ -101,8 +100,9 @@ def sampling(_data, degrees, bus_distance):
     # return data
 
     # sampling without zero filling
+    delete_node = list(delete_sampling | short_node)
     delete_data = np.delete(data, delete_node, 1)
-    delete_bus = np.delete(id_and_degree, delete_node, 1)
+    # delete_bus = np.delete(id_and_degree, delete_node, 1)
     return delete_data
     # return np.concatenate((delete_bus, delete_data), axis=0)
 
@@ -238,14 +238,13 @@ def analysis_data(data_root, output=None):
     logger.info("Analysis finished!")
 
 if __name__ == '__main__':
+    test_path = gl.ORIGNIL_SAMPLE_PATH + 'ST_2/tensor2D.txt'
+    sampling(read_one_case(test_path))
     if False:
-        path = r"F:/Workspace/LSTM/MLSTM-src/sampling/1/ST_2/tensor2D.txt"
-        read_one_case(path, True)
+        read_one_case(test_path, True)
 
     if False:
-        path = r"F:/Workspace/LSTM/MLSTM-src/sampling/1/data/fault_mark.json"
-        read_a_set_labels(path, True)
+        read_a_set_labels(gl.ORIGNIL_SAMPLE_PATH + 'data/fault_mark.json', True)
 
     if True:
-        data_root_path = r"F:/Workspace/LSTM/MLSTM-src/sampling"
-        analysis_data(data_root_path, output="./analysis-data.log")
+        analysis_data(gl.ORIGNIL_SAMPLE_PATH, output="./analysis-data.log")

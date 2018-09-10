@@ -103,16 +103,16 @@ def train_model(model,
                 optimization_mode='max', 
                 compile_model=True):
     data_loader = DataLoader(seed=cfg.DATA.SPLIT_SEED, weights='default', verbose=True)
-    # load all data into memory
-    X_train, y_train = data_loader.data_read('train')
-    X_validation, y_validation = data_loader.data_read('validation')
+    # # load all data into memory
+    # X_train, y_train = data_loader.data_read('train')
+    # X_validation, y_validation = data_loader.data_read('validation')
     # factor = 1. / np.cbrt(2)
     factor = 1. / 2
 
     if not os.path.exists(cfg.MODEL.SAVE_PATH):
         os.makedirs(cfg.MODEL.SAVE_PATH)
 
-    weight_fn = os.path.join(cfg.MODEL.SAVE_PATH, "14k_renormalization_no_zeroFilling_%s_sampling_weights.h5" % cfg.DATA.PREFIX)
+    weight_fn = os.path.join(cfg.MODEL.SAVE_PATH, "%s_sampling_weights.h5" % cfg.DATA.PREFIX)
     if os.path.exists(weight_fn):
         model.load_weights(weight_fn)
         # model = load_model(weight_fn)
@@ -131,32 +131,32 @@ def train_model(model,
 
     callback_list = [model_checkpoint, reduce_lr, tb_cb]
     # load all data into memory and fit
-    model.fit(X_train, y_train, epochs=cfg.TRAIN.EPOCHS,
-                        verbose=1,
-                        validation_data=(X_validation, y_validation),
-                        class_weight=data_loader.class_weights,
-                        callbacks=callback_list)
-    # load data by batches
-    # steps_per_epoch = int(1.0 * data_loader.train.num_of_paths / cfg.TRAIN.BATCH_SIZE)
-    # val_steps_per_epoch = int(1.0 * data_loader.val.num_of_paths / cfg.TRAIN.BATCH_SIZE)
-
-    # model.fit_generator(data_loader.generator('train', cfg.TRAIN.BATCH_SIZE), 
-    #                     epochs=cfg.TRAIN.EPOCHS,
-    #                     steps_per_epoch=steps_per_epoch,
+    # model.fit(X_train, y_train, epochs=cfg.TRAIN.EPOCHS,
     #                     verbose=1,
-    #                     validation_data=data_loader.generator('validation', cfg.TRAIN.BATCH_SIZE),
-    #                     validation_steps=val_steps_per_epoch,
+    #                     validation_data=(X_validation, y_validation),
     #                     class_weight=data_loader.class_weights,
-    #                     callbacks=callback_list,
-    #                     workers=cfg.TRAIN.WORKERS,
-    #                     max_queue_size=cfg.TRAIN.MAX_QUEUE_SIZE)
+    #                     callbacks=callback_list)
+    # load data by batches
+    steps_per_epoch = int(1.0 * data_loader.train.num_of_paths / cfg.TRAIN.BATCH_SIZE)
+    val_steps_per_epoch = int(1.0 * data_loader.val.num_of_paths / cfg.TRAIN.BATCH_SIZE)
+
+    model.fit_generator(data_loader.generator('train', cfg.TRAIN.BATCH_SIZE), 
+                        epochs=cfg.TRAIN.EPOCHS,
+                        steps_per_epoch=steps_per_epoch,
+                        verbose=1,
+                        validation_data=data_loader.generator('validation', cfg.TRAIN.BATCH_SIZE),
+                        validation_steps=val_steps_per_epoch,
+                        class_weight=data_loader.class_weights,
+                        callbacks=callback_list,
+                        workers=cfg.TRAIN.WORKERS,
+                        max_queue_size=cfg.TRAIN.MAX_QUEUE_SIZE)
     
 
 
 def evaluate_model(model):
     data_loader = DataLoader(seed=cfg.DATA.SPLIT_SEED, weights='default', verbose=True)
-    # load all data into memory
-    x, y = data_loader.data_read(tag='test', seed=cfg.DATA.SPLIT_SEED)
+    # # load all data into memory
+    # x, y = data_loader.data_read(tag='test', seed=cfg.DATA.SPLIT_SEED)
 
     optm = Adam(lr=cfg.TRAIN.LR)
     model.compile(optimizer=optm, loss='categorical_crossentropy', metrics=['accuracy'])
@@ -167,11 +167,11 @@ def evaluate_model(model):
     print("\nEvaluating : ")
     steps = int(1.0 * data_loader.test.num_of_paths / cfg.TEST.BATCH_SIZE)
     # load all data into memeory and get result
-    loss, accuracy = model.evaluate(x, y, batch_size=cfg.TEST.BATCH_SIZE)
+    # loss, accuracy = model.evaluate(x, y, batch_size=cfg.TEST.BATCH_SIZE)
     # test by batches
-    # loss, accuracy = model.evaluate_generator(data_loader.generator('test', cfg.TEST.BATCH_SIZE),
-    #                                           steps=steps, workers=cfg.TEST.WORKERS,
-    #                                           max_queue_size=cfg.TEST.MAX_QUEUE_SIZE)
+    loss, accuracy = model.evaluate_generator(data_loader.generator('test', cfg.TEST.BATCH_SIZE),
+                                              steps=steps, workers=cfg.TEST.WORKERS,
+                                              max_queue_size=cfg.TEST.MAX_QUEUE_SIZE)
     
     print()
     print("Final Accuracy : ", accuracy)

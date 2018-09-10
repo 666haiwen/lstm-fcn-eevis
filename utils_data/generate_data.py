@@ -112,29 +112,29 @@ class DataLoader(object):
         -------
         `verbose`: display data info or not
         """
-        grids_list = glob(osp.join(cfg.DATA.ROOT_DIR, "*"))
-        for grid in grids_list:
+        # grids_list = glob(osp.join(cfg.DATA.ROOT_DIR, "*"))
+        # for grid in grids_list:
             # real data
-            ST_list = glob(osp.join(grid, "ST_*"))
-            labels = read_a_set_labels(osp.join(grid, cfg.DATA.LAB_FILE))
-            remove_list = []
-            for i, ST in enumerate(ST_list):
-                basename = osp.basename(ST)
-                if not basename in labels.keys():
-                    remove_list.append(ST)
-                else:
-                    self.all_labels.append(labels[basename])
-                    ST_list[i] = osp.join(ST_list[i], cfg.DATA.OBJ_FILE)
-            for ST in remove_list:
-                ST_list.remove(ST)
-            self.all_txt_paths.extend(ST_list)
+        ST_list = glob(osp.join(cfg.DATA.ROOT_DIR, "ST_*"))
+        labels = read_a_set_labels(osp.join(cfg.DATA.ROOT_DIR, cfg.DATA.LAB_FILE))
+        remove_list = []
+        for i, ST in enumerate(ST_list):
+            basename = osp.basename(ST)
+            if not basename in labels.keys():
+                remove_list.append(ST)
+            else:
+                self.all_labels.append(labels[basename])
+                ST_list[i] = osp.join(ST_list[i], cfg.DATA.OBJ_FILE)
+        for ST in remove_list:
+            ST_list.remove(ST)
+        self.all_txt_paths.extend(ST_list)
 
-            # fake data
-            # FAKE_list = glob(osp.join(grid, cfg.DATA.FAKE_FILE))
-            # self.all_txt_paths.extend(FAKE_list)
-            # self.all_labels.extend([cfg.DATA.FAKE_CLASS] * len(FAKE_list))    # NEW labels normal(fake) data
+        # fake data
+        # FAKE_list = glob(osp.join(grid, cfg.DATA.FAKE_FILE))
+        # self.all_txt_paths.extend(FAKE_list)
+        # self.all_labels.extend([cfg.DATA.FAKE_CLASS] * len(FAKE_list))    # NEW labels normal(fake) data
 
-            assert len(self.all_labels) == len(self.all_txt_paths)
+        assert len(self.all_labels) == len(self.all_txt_paths)
 
         num_of_labels = len(self.all_labels)
         num_of_examples = len(self.all_txt_paths)
@@ -225,7 +225,6 @@ class DataLoader(object):
                     data[i] = read_one_case(data_paths[iter + i])
                 self._one_hot(labels[iter:iter + batch_size], targets)
 
-                print('one batch')
                 if not use_weights or self.class_weights is None:
                     yield data, targets
                 else:
@@ -235,9 +234,9 @@ class DataLoader(object):
 
 
     def data_read(self, tag, seed=None, flatten=False):
-        '''
+        """
             Read sample data into memory
-        '''
+        """
         if not tag in ['train', 'validation', 'test']:
             raise ValueError("Parameter `tag` mush belong to ['train', 'validation', 'test']!")
 
