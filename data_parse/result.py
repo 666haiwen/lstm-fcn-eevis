@@ -75,7 +75,6 @@ def _result(prefix, file_id):
         json.dump(file_result[Item.voltages.name], fp)
 
 
-
 def result():
     """Export this function for install.py"""
     files = utils.get_file_list()

@@ -1,10 +1,11 @@
 import sys
 import os
 import json
+import h5py
 import numpy as np
 sys.path.append(os.getcwd())
-from utils_data.utils import sampling
-from utils_data.const import TENSORE_FILE, TIMES_EXPANSION, SAMPLE_RATE, NO_FILLING
+from utils_data.utils import sampling, decomposition
+from utils_data.const import TENSORE_FILE, TIMES_EXPANSION, SAMPLE_RATE, NO_FILLING, CP_RANK
 from data_parse.utils import get_json_file
 import data_parse.const as gl
 
@@ -72,6 +73,22 @@ def union_fault_mark():
         json.dump(mark_a, fp)
 
 
+def tensor_decomposition():
+    tensor_files = os.listdir(gl.TENSOR_SAMPLE_PATH)
+    for i, file_name in enumerate(tensor_files):
+        if file_name == 'data':
+            continue
+        file_path = gl.TENSOR_SAMPLE_PATH + file_name + '\\'
+        tensor = np.loadtxt(file_path + 'tensor2D.txt')
+        factors = decomposition(tensor, rank=CP_RANK)
+        np.savetxt(file_path + 'cp-time.txt', factors[0], fmt='%.8e')
+        np.savetxt(file_path + 'cp-busId.txt', factors[1], fmt='%.8e')
+        print(file_name)
+        if i == 20:
+            return
+
+
 # reNormalization()
 # sampling_data_generate()
-union_fault_mark()
+# union_fault_mark()
+tensor_decomposition()

@@ -8,6 +8,9 @@ SAMPLE_RATE = 0.25
 NO_FILLING = 1    # 1 means no zero filling
                   # 0 means with zeor filling
 
+# tensor decompostion
+CP_RANK = 2
+TUCKER_CORE = [2, 3]
 # data management files
 TENSORE_FILE = 'tensor2D.txt'
 TIMES_EXPANSION = 50

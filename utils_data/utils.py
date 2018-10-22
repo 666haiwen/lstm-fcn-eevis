@@ -9,6 +9,7 @@ from datetime import datetime
 from glob import glob
 from time import localtime, strftime, time
 import numpy as np
+from tensorly.decomposition import parafac, tucker
 sys.path.append(os.getcwd())
 from utils_data.const import SAMPLE_RATE
 from utils_data.entropy import cal_entropy
@@ -105,6 +106,31 @@ def sampling(_data):
     # delete_bus = np.delete(id_and_degree, delete_node, 1)
     return delete_data
     # return np.concatenate((delete_bus, delete_data), axis=0)
+
+
+def decomposition(tensor, dfunc='cp', rank=3, ranks=[2, 3, 2]):
+    """tensor decompostion using tensorly
+
+    Params
+    ------
+    tensor : np.ndarray with data from "tensor2D.txt"
+    dfunc : cp or tucker
+    rank: cp-rank
+    ranks: tucker-core
+
+    Returns
+    -------
+    factors : np.ndarray after tensor decompostion, shape=(2,)
+    core: np.ndarray after tensor decomposition, shape=ranks.shape
+    """
+    if dfunc == 'cp':
+    ## CP-Decomposition
+        factors = parafac(tensor, rank=rank, init='svd')
+        return factors
+    ## Tucker-decomposition
+    if dfunc == 'tucker':
+        core, factors = tucker(tensor, ranks=ranks)
+        return core, factors
 
 
 def read_one_case(path, verbose=False, flatten=False):

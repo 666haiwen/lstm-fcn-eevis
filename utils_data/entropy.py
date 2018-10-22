@@ -93,6 +93,3 @@ def entropy_test():
     data = np.loadtxt(path)
     entropy, threshold = cal_entropy(data)
     print(entropy, threshold)
-
-
-# entropy_test()
