@@ -11,7 +11,7 @@ from time import localtime, strftime, time
 import numpy as np
 from tensorly.decomposition import parafac, tucker
 sys.path.append(os.getcwd())
-from utils_data.const import SAMPLE_RATE
+import utils_data.const as st
 from utils_data.entropy import cal_entropy
 import data_parse.const as gl
 
@@ -74,11 +74,11 @@ def sampling(_data):
     -------
     data : np.ndarray after sampling
     """
-    if SAMPLE_RATE == 1.0:
+    if st.SAMPLE_RATE == 1.0:
         return _data
     data = _data.copy()
     node_numbers = data.shape[1]
-    delete_shape = node_numbers - int(node_numbers * SAMPLE_RATE)
+    delete_shape = node_numbers - int(node_numbers * st.SAMPLE_RATE)
     entropy, threshold = cal_entropy(data)
     short_node = set(filter(lambda index: entropy[index] < threshold and index > 1, range(node_numbers)))
     # len of short_node is uncertain since threshold value may not unique
@@ -131,6 +131,199 @@ def decomposition(tensor, dfunc='cp', rank=3, ranks=[2, 3, 2]):
     if dfunc == 'tucker':
         core, factors = tucker(tensor, ranks=ranks)
         return core, factors
+
+
+def gauss_normalization(_data):
+    """ Normaliztion a matrix into Standard normal distribution
+
+    Params
+    ------
+    _data: np.ndarray, ndim=2
+
+    Returns
+    -------
+    data: np.ndarray, ndim=2
+    """
+    data = np.copy(_data)
+    shape = data.shape
+    for j in range(shape[1]):
+        mean = np.mean(data[:, j])
+        std = np.std(data[:, j], ddof=1)
+        data[:, j] = (data[:, j] - mean) / std
+    return data
+
+
+def sax(tensor):
+    """  Symbolic Aggregate approXimation for time series data just like cols in tensor data
+         Translate time series data into Alphabet by PAA --> Normaliztion --> Discretization
+
+    Params
+    ------
+    tensor : np.ndarray with data from "tensor2D.txt"
+
+    Returns
+    -------
+    data : Alphabet data after sax, shape=(w, feature_number), type=list
+
+    Reference
+    ---------
+    Paper A Symbolic Representation of Time Series, with Implications for Streaming Algorithms
+    Link: http://www.cs.ucr.edu/~eamonn/SAX.pdf
+    """
+    shape = tensor.shape
+    if shape[0] != gl.TIMES_STEPS:
+        raise ValueError('Time Steps in tensor must be {}'.format(gl.TIMES_STEPS))
+    if shape[1] != st.SAMPLE_FETURE:
+        raise ValueError('Feature Number in tensor must be {}'.format(st.SAMPLE_FETURE))
+    
+    paa = np.zeros((st.PAA_W, st.SAMPLE_FETURE))
+    rate = st.PAA_RATE
+    for j in range(st.SAMPLE_FETURE):
+        for i in range(st.PAA_W):
+            paa[i][j] = np.sum(tensor[i*rate:((i + 1)*rate - 1), j]) / rate
+    paa = gauss_normalization(paa)
+
+    data = [[st.SYMBOLS[st.BREAK_A - 1] for j in range(st.SAMPLE_FETURE)] for i in range(st.PAA_W)]
+    for j in range(st.SAMPLE_FETURE):
+        for i in range(st.PAA_W):
+            for k in range(st.BREAK_A - 1):
+                if paa[i][j] < st.BREAK_POINTS[k]:
+                    data[i][j] = st.SYMBOLS[k]
+                    break
+    return data
+
+
+def mindis(Q, C):
+    """ calculate MINDIST between symbol matrix Q and C
+
+    Params
+    ------
+    Q, C: symbol matrix to calculate
+
+    Return
+    ------
+    D: distance vector between Q and C
+    """
+    D = np.zeros((st.SAMPLE_FETURE))
+    for i in range(st.SAMPLE_FETURE):
+        q = [x[i] for x in Q]
+        c = [x[i] for x in C]
+        length = len(q)
+        for j in range(length):
+            D[i] += st.DIST_TABLE[st.INDEX_S[q[j]]][st.INDEX_S[c[j]]] ** 2
+        D[i] = np.sqrt(st.PAA_RATE * D[i])
+    return D
+
+
+def dis(Q, C):
+    """ calculate Euclidean distance between tensor Q and C
+
+    Params
+    ------
+    Q, C: tensor dataz
+
+    Return
+    ------
+    D: distance vector between Q and C
+    """
+    D = np.zeros((st.SAMPLE_FETURE))
+    for i in range(st.SAMPLE_FETURE):
+        D[i] = np.sqrt(np.sum((Q[:,i] - C[:,i]) ** 2))
+    return D, np.sum(D)
+
+
+def test_transfer_eff(tensor):
+    res = np.zeros((5 * st.BREAK_A, st.SAMPLE_FETURE))
+    for j in range(st.SAMPLE_FETURE):
+        mean = np.mean(tensor[:, j])
+        std = np.std(tensor[:, j], ddof=1)
+        org_gauss = [x * std + mean for x in st.BREAK_POINTS]
+        tmp_list = [[] for i in range(st.BREAK_A)]
+        for x in tensor[:,j]:
+            index = st.BREAK_A - 1
+            for k in range(st.BREAK_A - 1):
+                if x < org_gauss[k]:
+                    index = k
+                    break
+            tmp_list[index].append(x)
+        for i in range(st.BREAK_A):
+            sorted(tmp_list[i])
+            length = len(tmp_list[i])
+            if length == 0:
+                continue
+            tmp_array = np.array(tmp_list[i])
+            res[i * 5, j] = np.mean(tmp_array)
+            res[i * 5 + 1, j] = np.std(tmp_array)
+            res[i * 5 + 2, j] = tmp_array[int(length / 2)]
+            res[i * 5 + 3, j] = tmp_array[int(length / 4)]
+            res[i * 5 + 4, j] = length
+    return res
+
+
+def dtw(x, y):
+    """calculate 1*D array x and y distance by dtw
+
+    Args:
+        x,y 1*D array of input to dtw
+
+    Returns:
+        vaule after dtw
+    """
+    d = np.array([[abs(i - j) for j in y] for i in x])
+    len_x = len(x)
+    len_y = len(y)
+    g = np.zeros((len_x, len_y), dtype=np.float)
+    g[0][0] = d[0][0]
+    for i in range(1, len_x):
+        g[i][0] = g[i - 1][0] + d[i][0]
+    for j in range(1, len_y):
+        g[0][j] = g[0][j - 1] + d[0][j]
+    for i in range(1, len_x):
+        for j in range(1, len_y):
+            g[i][j] = d[i][j] + min(g[i - 1][j - 1], g[i - 1][j], g[i][j - 1])
+    return g[len_x - 1][len_y - 1]
+
+
+def get_sm(_data, d_type, dis_type='euclid'):
+    """get similar matrix from _data
+
+    """
+    if d_type == 'symbol':
+        shape = (st.PAA_W, st.SAMPLE_FETURE)
+        data = _data
+        sm = np.zeros((shape[1], shape[1]), )
+    else:
+        if d_type == 'paa':
+            tensor = gauss_normalization(_data)
+            data = np.ones((st.PAA_W, st.SAMPLE_FETURE))
+            rate = int(gl.TIMES_STEPS / st.PAA_W)
+            for j in range(st.SAMPLE_FETURE):
+                for i in range(st.PAA_W):
+                    data[i][j] = np.sum(tensor[i*rate:((i + 1)*rate - 1), j]) / rate
+        elif d_type == 'tensor':
+            data = _data
+
+        shape = data.shape
+        sm = np.ones((shape[1], shape[1]), )
+
+    for col in range(shape[1]):
+        for pre in range(col):
+            if d_type == 'symbol':
+                for j in range(shape[0]):
+                    sm[col][pre] += st.DIST_TABLE[st.INDEX_S[data[j][col]]][st.INDEX_S[data[j][pre]]] ** 2
+                sm[col][pre] = np.sqrt(st.PAA_RATE * sm[col][pre])
+            elif d_type == 'tensor':
+                if dis_type == 'euclid':
+                    sm[col][pre] = np.sqrt(np.sum((data[:, col] - data[:, pre]) ** 2))
+                    if sm[col][pre] == 0:
+                        sm[col][pre] = 1
+                elif dis_type == 'dtw':
+                    sm[col][pre] = dtw(data[:, col], data[:, pre])
+            elif d_type == 'paa':
+                sm[col][pre] = np.sqrt(st.PAA_RATE * (np.sum((data[:, col] - data[:, pre]) ** 2)))
+                if sm[col][pre] == 0:
+                        sm[col][pre] = 1
+    return sm
 
 
 def read_one_case(path, verbose=False, flatten=False):

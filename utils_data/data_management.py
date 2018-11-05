@@ -4,8 +4,8 @@ import json
 import h5py
 import numpy as np
 sys.path.append(os.getcwd())
-from utils_data.utils import sampling, decomposition
-from utils_data.const import TENSORE_FILE, TIMES_EXPANSION, SAMPLE_RATE, NO_FILLING, CP_RANK
+from utils_data.utils import sampling, sax, dis, mindis
+from utils_data.const import TENSORE_FILE, TIMES_EXPANSION, SAMPLE_RATE, NO_FILLING, SAMPLE_FETURE
 from data_parse.utils import get_json_file
 import data_parse.const as gl
 
@@ -73,22 +73,47 @@ def union_fault_mark():
         json.dump(mark_a, fp)
 
 
-def tensor_decomposition():
+def alphabet_data_generate():
+    """
+        Symbolic Aggregate approXimation for time series data just like cols in tensor data
+        paper: A Symbolic Representation of Time Series, with Implications for Streaming Algorithms
+        link: http://www.cs.ucr.edu/~eamonn/SAX.pdf
+
+        Translate time series data into Alphabet by PAA --> Normaliztion --> Discretization
+    """
     tensor_files = os.listdir(gl.TENSOR_SAMPLE_PATH)
-    for i, file_name in enumerate(tensor_files):
+    # for i, file_name in enumerate(tensor_files):
+    for i in range(51, 202, 50):
+        file_name = 'ST_' + str(i)
         if file_name == 'data':
             continue
         file_path = gl.TENSOR_SAMPLE_PATH + file_name + '\\'
         tensor = np.loadtxt(file_path + 'tensor2D.txt')
-        factors = decomposition(tensor, rank=CP_RANK)
-        np.savetxt(file_path + 'cp-time.txt', factors[0], fmt='%.8e')
-        np.savetxt(file_path + 'cp-busId.txt', factors[1], fmt='%.8e')
+        symbols = sax(tensor)
+        length = len(symbols)
+        fileObj = open(file_path + 'symbols.txt', 'w')
+        for row in range(length):
+            for col in range(SAMPLE_FETURE):
+                fileObj.write(symbols[row][col] + ' ')
+            fileObj.write('\n')
         print(file_name)
-        if i == 20:
-            return
+        if i == 51:
+            pre_symbols = symbols
+            pre_tensor = tensor
+        else:
+            dis_sym = mindis(pre_symbols, symbols)
+            dis_org = dis(pre_tensor, tensor)
+            dis_res = np.zeros((4, SAMPLE_FETURE))
+            dis_res[0] = dis_sym
+            dis_res[1] = dis_org
+            dis_res[2] = dis_sym / dis_org
+            dis_res[3][0] = np.mean(dis_sym)
+            dis_res[3][1] = np.mean(dis_org)
+            dis_res[3][2] = dis_res[3][0] / dis_res[3][1]
+            np.savetxt(file_path + 'dis.txt', dis_res, fmt='%.6e')
 
 
 # reNormalization()
 # sampling_data_generate()
 # union_fault_mark()
-tensor_decomposition()
+alphabet_data_generate()
