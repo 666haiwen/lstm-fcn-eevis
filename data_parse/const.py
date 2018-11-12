@@ -5,7 +5,7 @@ import os
 
 # file path
 module_dir = os.path.dirname(__file__)
-FILE_PATH = 'G:\\beta_eevis_data\\2017_07_01T00_00_00\\'
+FILE_PATH = 'I:\\LSTM-EEVIS\\eevis\\archive\\eevis\\beta_eevis_data\\2017_07_01T00_00_00\\'
 DST_PATH = module_dir + '\\..\\data\\'
 ORIGNIL_SAMPLE_PATH = module_dir + '\\..\\original_sample\\'
 # TENSOR_SAMPLE_PATH = module_dir + '\\..\\samples\\'

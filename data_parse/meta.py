@@ -28,8 +28,8 @@ def meta(prefix, dstfix):
                 prev_item = item
             else:
                 _switch(prev_item, meta_result, line[2: len(line)])
-    with open(dstfix + 'meta.json', 'w') as fp:
-        json.dump(meta_result, fp, indent = 2, ensure_ascii=False)
+    # with open(dstfix + 'meta.json', 'w') as fp:
+    #     json.dump(meta_result, fp, indent = 2, ensure_ascii=False)
     return meta_result
 
 

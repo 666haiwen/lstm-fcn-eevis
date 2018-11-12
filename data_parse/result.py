@@ -69,8 +69,8 @@ def _result(prefix, file_id):
     print('Writing result.json to: ' + dstfix + ' ...')
     # with open(prefix + 'result.json', 'w') as fp:
     #     json.dump(file_result, fp)
-    with open(dstfix + 'phase_angles.json', 'w') as fp:
-        json.dump(file_result[Item.phase_angles.name], fp)
+    # with open(dstfix + 'phase_angles.json', 'w') as fp:
+    #     json.dump(file_result[Item.phase_angles.name], fp)
     with open(dstfix + 'voltages.json', 'w') as fp:
         json.dump(file_result[Item.voltages.name], fp)
 
@@ -79,8 +79,7 @@ def result():
     """Export this function for install.py"""
     files = utils.get_file_list()
     for i, fileName in enumerate(files):
-        if i > 2641:
-            _result(FILE_PATH + fileName + '\\', str(i + 1))
+        _result(FILE_PATH + fileName + '\\', str(i + 1))
 
 
 if __name__ == '__main__':

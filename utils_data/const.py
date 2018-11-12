@@ -30,3 +30,11 @@ DIST_TABLE = [[0 if abs(r-c) <= 1 else BREAK_POINTS[max(r, c) - 1] - BREAK_POINT
 # data management files
 TENSORE_FILE = 'tensor2D.txt'
 TIMES_EXPANSION = 50
+
+# distance compare
+## index 0 of element is base element, distance between element[0,1] is low and element[0, 2] is higth
+HIGH_VOLTAGE = ['ST_9', 'ST_17', 'ST_866']
+LOW_VOLTAGE = ['ST_177', 'ST_1809', 'ST_379']
+LOW_HIGH_VOLTAGE = ['ST_200', 'ST_80', 'ST_9']
+HIGH_S = ['ST_9', 'ST_11', 'ST_26', 'ST_2640', 'ST_81', 'ST_193']
+LOW_S = ['ST_178', 'ST_177', 'ST_200', 'ST_1816', 'ST_597', 'ST_2078']

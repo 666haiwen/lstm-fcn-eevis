@@ -75,8 +75,8 @@ def _create_shortest_path(prefix):
     edge_map = _create_map(edges, map_size)
     # construct shortest path between map by different fault center
     for i, fault in enumerate(faults):
-        if i < 2828:
-            continue
+        if i > 5:
+            break
         # get fault center
         x = fault['i']
         y = fault['j']

@@ -146,7 +146,7 @@ def vertify_sample(num):
 
 def _mark_sample(faults):
     last_res = utils.get_json_file(gl.ORIGNIL_SAMPLE_PATH + 'data\\',\
-    'fault_list.json', defaultRes={
+    '_fault_list.json', defaultRes={
         'fault_list':[{
             'i':0,
             'j':0
@@ -155,10 +155,12 @@ def _mark_sample(faults):
     })
     fault_list = last_res['fault_list']
     last_fault_index = last_res['last_fault_index']
-    mark = utils.get_json_file(gl.ORIGNIL_SAMPLE_PATH + 'data\\', 'fault_mark.json', defaultRes=[])
+    mark = utils.get_json_file(gl.ORIGNIL_SAMPLE_PATH + 'data\\', '_fault_mark.json', defaultRes=[])
     # sample id
     index = 0
     for fault_index, fault in enumerate(faults):
+        if fault_index >= 5:
+            break
         if fault_index < last_fault_index or fault['st'] in gl.WRONG_SAMPLE_ID:
             continue
         if fault['type'] == gl.FAULT_TYPE:
@@ -166,7 +168,7 @@ def _mark_sample(faults):
             # get shortest path
             shortest_path = utils.get_json_file(path, 'shortest_path.json')['busIds']
             # get voltage of specific sample
-            voltages = utils.get_json_file(path, 'meta.json')['voltages']
+            voltages = utils.get_json_file(path, 'voltages.json')
             voltage_index = [-1 for i in range(gl.BUS_NUMBER + 1)]
             for i, voltage in enumerate(voltages):
                 voltage_index[voltage['busId']] = i
@@ -201,13 +203,13 @@ def _mark_sample(faults):
             if not os.path.exists(path):
                 os.makedirs(path)
             print('Saveing tensor2D to {} From fault_index of {}'.format(path, fault_index))
-            np.savetxt(path + 'tensor2D.txt', tensor, fmt='%.6e')
+            np.savetxt(path + '_tensor2D.txt', tensor, fmt='%.6e')
             # set bus_distance of tensor2D
-            with open(path + 'bus_distance.json', 'w') as fp:
+            with open(path + '_bus_distance.json', 'w') as fp:
                 json.dump(bus_distance, fp)
             # set reorientation of original_sample to data
             path = gl.ORIGNIL_SAMPLE_PATH + 'ST_' + str(index) + '\\'
-            with open(path + 'reorientation.json', 'w') as fp:
+            with open(path + '_reorientation.json', 'w') as fp:
                 json.dump({'data_st': 'ST_' + fault['st']}, fp)
 
 
@@ -233,9 +235,9 @@ def _mark_sample(faults):
                 })
             # temporary save just in case of program stopping unexpected
             print('Saving temporary fault_mark and fault_list of index: ' + str(fault_index))
-            with open(gl.ORIGNIL_SAMPLE_PATH + 'data\\fault_mark.json', 'w') as fp:
+            with open(gl.ORIGNIL_SAMPLE_PATH + 'data\\_fault_mark.json', 'w') as fp:
                 json.dump(mark, fp)
-            with open(gl.ORIGNIL_SAMPLE_PATH + 'data\\fault_list.json', 'w') as fp:
+            with open(gl.ORIGNIL_SAMPLE_PATH + 'data\\_fault_list.json', 'w') as fp:
                 json.dump({
                     'fault_list': fault_list,
                     'last_fault_index': fault_index
