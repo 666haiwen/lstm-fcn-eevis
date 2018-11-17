@@ -31,6 +31,7 @@ def sampling_data_generate():
     orignal_sample_used = sample_logs['orignal_sample_used']
     cnt = len(mark_used) * TIMES_EXPANSION + TIMES_EXPANSION * gl.LABELS_NUM
     res = get_json_file(gl.TENSOR_SAMPLE_PATH + 'data\\', 'fault_mark.json', defaultRes=[])[:cnt]
+
     # begin to generate samples
     for sample_mark in mark:
         if sample_mark['mark'] not in mark_used:
@@ -116,4 +117,4 @@ def alphabet_data_generate():
 # reNormalization()
 # sampling_data_generate()
 # union_fault_mark()
-alphabet_data_generate()
+# alphabet_data_generate()

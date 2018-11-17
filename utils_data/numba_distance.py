@@ -1,36 +1,18 @@
-import math
 from collections import defaultdict
-from scipy.stats import chi2
 from fastdtw import fastdtw
 from pysptk.sptk import lpc
+from numba import jit
 import numpy as np
-import tensorflow as tf
 from numpy import linalg as la
 
 
-def tf_euclidean(x, y, norm=2):
-    shape = x.shape
-    with tf.device('/gpu:0'):
-        res = tf.Variable(tf.zeros(shape[1], dtype=tf.float64))
-        for col in range(shape[1]):
-            a = tf.constant(x[:, col])
-            b = tf.constant(y[:, col])
-            c = tf.abs(tf.subtract(a, b))
-            if norm == 1:
-                res[col].assign(tf.reduce_sum(c))
-            else:
-                res[col].assign((tf.reduce_sum(c**norm))**(1/norm))
-        v = tf.reduce_mean(res)
-    return v
-
-
-def euclidean(x, y, norm=2, resType='vector'):
+@jit(nopython=True, parallel=True)
+def euclidean(x, y, norm=2):
     """ calculate distance between matrix x and y by euclidean distance
 
     Params:
         x, y: ndarray (time_steps, feature_numbers)
         norm: int
-        resType: value or vector, decided the return type
 
     Returns:
         res: ndarray (feature_numbers,)
@@ -42,10 +24,10 @@ def euclidean(x, y, norm=2, resType='vector'):
             res[col] = np.sum(np.abs(x[:, col] - y[:, col]))
         else:
             res[col] = (np.sum((x[:, col] - y[:, col])**norm))**(1/norm)
-    return res if resType == 'vector' else np.mean(res)
+    return np.mean(res)
 
 
-def related(x, y, d_type=2, beta=1.5, resType='vector'):
+def related(x, y, d_type=2, beta=1.5):
     """ calculate distance between matrix x and y by
         Pearson's correlation coefficient and related distances
 
@@ -63,15 +45,15 @@ def related(x, y, d_type=2, beta=1.5, resType='vector'):
     for col in range(shape[1]):
         cc = np.corrcoef(x[:, col], y[:, col])[0][1]
         res[col] = ((1 - cc) / (1 + cc))**beta if d_type == 1 else 2*(1 - cc)
-    return res if resType == 'vector' else np.mean(res)
+    return np.mean(res)
 
 
-def sts(x, y, resType='vector'):
+@jit(nopython=True, parallal=True)
+def sts(x, y):
     """ calculate distance between matrix x and y by short time series distance
 
     Params:
         x, y: ndarray (time_steps, feature_numbers)
-        resType: value or vector, decided the return type
 
     Returns:
         res: ndarray (feature_numbers,)
@@ -82,56 +64,35 @@ def sts(x, y, resType='vector'):
     for col in range(shape[1]):
         res[col] = np.sum((x[1:, col] - x[:-1, col] - y[1:, col] + y[:-1, col])**2)
         res[col] = np.sqrt(res[col]) / dis_time
-    return res if resType == 'vector' else np.mean(res)
+    return np.mean(res)
 
 
-def dtw(x, y, resType='vector'):
+@jit(nopython=True, parallal=True)
+def dtw(x, y):
     """ calculate distance between matrix x and y by Dynamic time warping
 
     Params:
         x, y: ndarray (time_steps, feature_numbers)
-        resType: value or vector, decided the return type
 
     Returns:
         res: ndarray (feature_numbers,)
     """
-    return euclidean(x, y, norm=1, resType=resType)
+    return euclidean(x, y, norm=1)
     shape = x.shape
     res = np.zeros(shape[1])
     for col in range(shape[1]):
         res[col] = fastdtw(x[:, col], y[:, col])[0]
-    return res if resType == 'vector' else np.mean(res)
+    return np.mean(res)
 
 
-def probability_based(x, y, resType='vector'):
-    """ calculate distance between matrix x and y by 
-        Probability-based distance function for data with errors
-
-    Params:
-        x, y: ndarray (time_steps, feature_numbers)
-
-    Returns:
-        res: ndarray (feature_numbers,)
-    """
-    shape = x.shape
-    res = np.zeros(shape[1])
-    df = 2000
-    for col in range(shape[1]):
-        x_std = np.std(x[:, col]) ** 2
-        y_std = np.std(y[:, col]) ** 2
-        v_sum = np.sum((x[:, col] - y[:, col])**2)
-        res[col] = chi2.cdf(0, df) if v_sum == 0 else chi2.cdf(v_sum/(x_std + y_std), df)
-    return res if resType == 'vector' else np.mean(res)
-
-
-def kullback_Liebler(x, y, s=20, resType='vector'):
+@jit(nopython=True, parallal=True)
+def kullback_Liebler(x, y, s=20):
     """ calculate distance between matrix x and y by
         transition probabilities of two Markov chains
 
     Params:
         x, y: ndarray (time_steps, feature_numbers)
         s: probability distribution numbers
-        resType: value or vector, decided the return type
 
     Returns:
         res: ndarray (feature_numbers,)
@@ -167,60 +128,12 @@ def kullback_Liebler(x, y, s=20, resType='vector'):
             for j in range(s):
                 if p1[i][j] == 0 or p2[i][j] == 0:
                     continue
-                log = math.log(p1[i][j]) - math.log(p2[i][j])
+                log = np.log(p1[i][j]) - np.log(p2[i][j])
                 d += p1[i][j] * log
                 d += p2[i][j] * log * (-1)
             res[col] += d / 2
         res[col] /= s
-    return res if resType == 'vector' else np.mean(res)
-
-
-def j_divergence(x, y):
-    """ calculate distance between matrix x and y by
-        J divergence and symmetric Chernoff information divergence
-
-    Params:
-        x, y: ndarray (time_steps, feature_numbers)
-        resType: value or vector, decided the return type
-
-    Returns:
-        res: ndarray (feature_numbers,)
-    """
-    shape = x.shape
-    if shape != y.shape:
-        raise ValueError('The shape with x and y should be same, but {} != {}'.format(shape, y.shape))
-    T = shape[0]
-    p = shape[1]
-    res = 0
-    I = complex(0, 1)
-    for s in range(1, T + 1):
-        _s = 2 * s / T
-        dx = np.zeros(p, dtype=complex)
-        dy = np.zeros(p, dtype=complex)
-        fx = np.zeros((p, p), dtype=complex)
-        fy = np.zeros((p, p), dtype=complex)
-        for i in range(p):
-            for t in range(T):
-                exp = np.exp(-2 * np.pi * (1 + t) * _s * I)
-                dx[i] += x[t, i] * exp
-                dy[i] += y[t, i] * exp
-            dx[i] /= np.sqrt(T)
-            dy[i] /= np.sqrt(T)
-            fx[i][i] = dx[i] * dx[i].conjugate()
-            fy[i][i] = dy[i] * dy[i].conjugate()
-            for t in range(i):
-                fx[i][t] = dx[i] * dx[t].conjugate()
-                fx[t][i] = dx[t] * dx[i].conjugate()
-                fy[i][t] = dy[i] * dy[t].conjugate()
-                fy[t][i] = dy[t] * dy[i].conjugate()
-        left = np.dot(fx, np.linalg.inv(fy))
-        right = np.dot(fy, np.linalg.inv(fx))
-        for i in range(p):
-            res += left[i][i] + right[i][i]
-
-    res /= (2 * T)
-    return res - p
-
+    return np.mean(res)
 
 
 def autocorrelation_matrix(x):
@@ -317,13 +230,13 @@ def get_lpc_frameAndautocoeff(x, frame=20):
     return res, Rx
 
 
-def base_LPC(x, y, frame=20, resType='vector'):
+@jit(nopython=True)
+def base_LPC(x, y, frame=20):
     """ calculate distance between matrix x and y by
     Dissimilarity between two spoken words
 
     Params:
         x, y: ndarray (time_steps, feature_numbers)
-        resType: value or vector, decided the return type
 
     Returns:
         res: ndarray (feature_numbers,)
@@ -345,17 +258,16 @@ def base_LPC(x, y, frame=20, resType='vector'):
             ax_t = pattern_y[i]
             res[col] += abs(np.log(np.dot(np.dot(np.transpose(ay_t), Ry[i]), ay_t) / np.dot(np.dot(np.transpose(ax_t), Ry[i]), ax_t)))
         res[col] /= (2 * frame)
-    return res if resType == 'vector' else np.mean(res)
+    return np.mean(res)
 
 
-def pca_based(a, b, resType='value'):
+def pca_based(a, b):
     """ calculate distance between matrix x and y by pca_based
 
     link:https://www.researchgate.net/publication/221351631
 
     Params:
         x, y: ndarray (time_steps, feature_numbers)
-        resType: value or vector, decided the return type
 
     Returns:
         res: value of distance
@@ -372,4 +284,4 @@ def pca_based(a, b, resType='value'):
     res = 0
     for i in range(shape[1]):
         res += w[i] * abs(np.dot(va[:, i], vb[:, i]))
-    return res if resType == 'value' else np.array([res] * shape[1])
+    return res

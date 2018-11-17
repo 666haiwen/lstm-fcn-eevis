@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.append(os.path.join(os.getcwd()))
 import data_parse.utils as utils
-from data_parse.const import DST_PATH
+from data_parse.const import DST_PATH, FAULT_TYPE
 
 
 # create edge map by edge list
@@ -75,8 +75,10 @@ def _create_shortest_path(prefix):
     edge_map = _create_map(edges, map_size)
     # construct shortest path between map by different fault center
     for i, fault in enumerate(faults):
-        if i > 5:
-            break
+        if i < 1760:
+            continue
+        if fault['type'] != FAULT_TYPE:
+            continue
         # get fault center
         x = fault['i']
         y = fault['j']

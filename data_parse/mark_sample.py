@@ -6,8 +6,9 @@
 """
 import os
 import json
-import numpy as np
+import h5py
 import sys
+import numpy as np
 sys.path.append(os.path.join(os.getcwd()))
 import data_parse.const as gl
 import data_parse.utils as utils
@@ -151,17 +152,23 @@ def _mark_sample(faults):
             'i':0,
             'j':0
         }],
-        'last_fault_index': 0
+        'last_fault_index': -1,
+        'last_index': 0
     })
     fault_list = last_res['fault_list']
     last_fault_index = last_res['last_fault_index']
-    mark = utils.get_json_file(gl.ORIGNIL_SAMPLE_PATH + 'data\\', '_fault_mark.json', defaultRes=[])
+    mark = utils.get_json_file(gl.ORIGNIL_SAMPLE_PATH + 'data\\', '_fault_mark.json', defaultRes=[{"sample_id": 0, "mark": 0}])
+    # h5 files
+    if os.path.exists(gl.ORIGNIL_SAMPLE_PATH + 'data\\orignal_sample.hdf5'):
+        h5file = h5py.File(gl.ORIGNIL_SAMPLE_PATH + 'data\\orignal_sample.hdf5', 'r+')
+    else:
+        h5file = h5py.File(gl.ORIGNIL_SAMPLE_PATH + 'data\\orignal_sample.hdf5', 'w')
     # sample id
-    index = 0
+    index = last_res['last_index']
     for fault_index, fault in enumerate(faults):
-        if fault_index >= 5:
-            break
-        if fault_index < last_fault_index or fault['st'] in gl.WRONG_SAMPLE_ID:
+        # if fault_index >= 9:
+        #     break
+        if fault_index <= last_fault_index or fault['st'] in gl.WRONG_SAMPLE_ID:
             continue
         if fault['type'] == gl.FAULT_TYPE:
             path = gl.DST_PATH + '\\ST_' + fault['st'] + '\\'
@@ -199,17 +206,20 @@ def _mark_sample(faults):
                 print('Feature number is {} less then {} in ST_{}'.format(y, gl.FEATRUE_NUMBER, fault['st']))
 
             # save tensro
-            path = gl.ORIGNIL_SAMPLE_PATH + 'ST_' + str(index) + '\\'
+            groupName = 'ST_' + str(index)
+            if h5file.get(groupName) == None:
+                h5file.create_dataset(groupName, shape=tensor.shape, data=tensor)
+            path = gl.ORIGNIL_SAMPLE_PATH + groupName + '\\'
             if not os.path.exists(path):
                 os.makedirs(path)
             print('Saveing tensor2D to {} From fault_index of {}'.format(path, fault_index))
-            np.savetxt(path + '_tensor2D.txt', tensor, fmt='%.6e')
+            np.savetxt(path + 'tensor2D.txt', tensor, fmt='%.6e')
             # set bus_distance of tensor2D
-            with open(path + '_bus_distance.json', 'w') as fp:
+            with open(path + 'bus_distance.json', 'w') as fp:
                 json.dump(bus_distance, fp)
             # set reorientation of original_sample to data
             path = gl.ORIGNIL_SAMPLE_PATH + 'ST_' + str(index) + '\\'
-            with open(path + '_reorientation.json', 'w') as fp:
+            with open(path + 'reorientation.json', 'w') as fp:
                 json.dump({'data_st': 'ST_' + fault['st']}, fp)
 
 
@@ -240,8 +250,10 @@ def _mark_sample(faults):
             with open(gl.ORIGNIL_SAMPLE_PATH + 'data\\_fault_list.json', 'w') as fp:
                 json.dump({
                     'fault_list': fault_list,
-                    'last_fault_index': fault_index
+                    'last_fault_index': fault_index,
+                    'last_index': index
                 }, fp)
+    h5file.close()
 
 
 def mark_sample():

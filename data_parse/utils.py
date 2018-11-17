@@ -41,5 +41,4 @@ def get_json_file(filePath, fileName, defaultRes={}):
         f = open(filePath + fileName, encoding='utf-8')
         fileRes = json.load(f)
         return fileRes
-    else:
-        return defaultRes
+    return defaultRes

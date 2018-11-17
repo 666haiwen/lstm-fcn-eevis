@@ -10,7 +10,7 @@ import sys
 sys.path.append(os.path.join(os.getcwd()))
 from data_parse.meta import meta, Item
 import data_parse.utils as utils
-from data_parse.const import FILE_PATH, DST_PATH
+from data_parse.const import FILE_PATH, DST_PATH, FAULT_TYPE
 
 
 def _lines(prefix):
@@ -40,13 +40,16 @@ def _voltage(file_result, offset, col_idx, word):
     file_result[Item.voltages.name][col_idx - offset]['data'].append(float(word))
 
 
-def _result(prefix, file_id):
+def _result(prefix, file_id, faults):
     dstfix = DST_PATH + 'ST_' + file_id + '\\'
     if not os.path.exists(prefix):
         print('Doesn''t exit', prefix)
         return
     if not os.path.exists(dstfix):
         os.mkdir(dstfix)
+    if faults[int(file_id) - 1]['st'] == str(file_id):
+        if faults[int(file_id) - 1]['type'] != FAULT_TYPE:
+            return
     # get meta data
     if os.path.exists(dstfix + 'meta.json'):
         f = open(dstfix + 'meta.json', encoding='utf-8')
@@ -78,8 +81,11 @@ def _result(prefix, file_id):
 def result():
     """Export this function for install.py"""
     files = utils.get_file_list()
+    faults = utils.get_json_file(DST_PATH + 'data\\', 'fault.json')
     for i, fileName in enumerate(files):
-        _result(FILE_PATH + fileName + '\\', str(i + 1))
+        if i + 1< 1689:
+            continue
+        _result(FILE_PATH + fileName + '\\', str(i + 1), faults)
 
 
 if __name__ == '__main__':
