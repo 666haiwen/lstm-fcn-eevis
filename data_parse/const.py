@@ -22,7 +22,7 @@ UNLESS_BUS_ID = [316, 525, 526]
 FAULT_TYPE = 'S'
 
 # sample
-ORIGNIL_SAMPLE_NUM = 2663
+ORIGNIL_SAMPLE_NUM = 2671
 LABELS_NUM = 2180
 
 # samples that fault center doesn't has value or value are zero

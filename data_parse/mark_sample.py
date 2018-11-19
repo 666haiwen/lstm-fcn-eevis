@@ -263,6 +263,6 @@ def mark_sample():
 
 if __name__ == '__main__':
     # get_mark_from_tensor2D(gl.ORIGNIL_SAMPLE_NUM)
-    mark_sample()
-    # vertify_sample(gl.ORIGNIL_SAMPLE_NUM)
+    # mark_sample()
+    vertify_sample(gl.ORIGNIL_SAMPLE_NUM)
     # _adjust_original()

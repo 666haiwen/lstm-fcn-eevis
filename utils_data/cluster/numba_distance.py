@@ -4,6 +4,21 @@ from pysptk.sptk import lpc
 from numba import jit
 import numpy as np
 from numpy import linalg as la
+from sklearn.metrics.pairwise import euclidean_distances
+
+
+def test_euclidean(x, y):
+    """ calculate distance between matrix x and y by euclidean distance
+
+    Params:
+        x, y: ndarray (time_steps, feature_numbers)
+
+    Returns:
+        res: ndarray (feature_numbers,)
+    """
+    shape = x.shape
+    res = euclidean_distances(x, y)
+    return np.mean(res)
 
 
 @jit(nopython=True, parallel=True)

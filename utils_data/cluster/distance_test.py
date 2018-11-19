@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 sys.path.append(os.getcwd())
-import utils_data.distance as dt
+import utils_data.cluster.distance as dt
 import utils_data.const as st
 import data_parse.const as gl
 from data_parse.utils import get_json_file

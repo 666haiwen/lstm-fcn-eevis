@@ -6,21 +6,11 @@ import numpy as np
 import tensorflow as tf
 from utils import dis, test_transfer_eff, sax, get_sm
 from const import PAA_W, PAA_RATE, BATCH_HDF5
-from distance import euclidean, tf_euclidean
+from cluster.distance import euclidean, tf_euclidean
 from data_parse import const as gl
 from data_parse.utils import get_json_file
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
-def compare_distance():
-    file1 = gl.ORIGNIL_SAMPLE_PATH + 'ST_1/'
-    file2 = gl.ORIGNIL_SAMPLE_PATH + 'ST_4/'
-
-    file1 = gl.TENSOR_SAMPLE_PATH + 'ST_101/'
-    file2 = gl.TENSOR_SAMPLE_PATH + 'ST_102/'
-    Q = np.loadtxt(file1 + 'tensor2D.txt')
-    C = np.loadtxt(file2 + 'tensor2D.txt')
-    _, res = dis(Q, C)
-    print(_, res)
 
 
 def test_eff():
@@ -72,41 +62,6 @@ def test_data():
             tensor2[row][i] = v
     print('aaa')
 
-    
-def test_distance_cost():
-    file1 = gl.ORIGNIL_SAMPLE_PATH + 'ST_101/'
-    file2 = gl.ORIGNIL_SAMPLE_PATH + 'ST_102/'
-    Q = np.loadtxt(file1 + 'tensor2D.txt')
-    C = np.loadtxt(file2 + 'tensor2D.txt')
-    # for i in range(10):
-    #     a = euclidean(Q, C, resType='value')
-    # time_b = time.time()
-    # print((time_b - time_a)/10)
-    # time_a = time.time()
-    # print(a)    
-
-    sess = tf.Session()
-    time_a = time.time()
-    v = tf_euclidean(Q, C)
-    sess.run(tf.global_variables_initializer())
-    # for i in range(10):
-    a = sess.run(v)
-    time_b = time.time()
-    print((time_b - time_a))
-    print(a)    
-
-
-
-def test_tf():
-    sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
-    with tf.device('/gpu:0') as target:
-        pass
-    a = np.array([[1,2,3],[4,5,6]])
-    b = np.transpose(a)
-    c = tf.matmul(a, b)
-    print(a)
-    print(tf.Session)
-
 
 def test_hdf5():
     X = h5py.File(gl.ORIGNIL_SAMPLE_PATH + 'data\\batch_sample.hdf5', 'r+')
@@ -128,42 +83,13 @@ def test_hdf5():
     print('time of sample is {}'.format(time2-time1))
 
 
-# compare_distance()
+
 # test_eff()
 # test_sm()
 # test_data()
-# a = np.array([5] * 20)
-# print(a)
-# t = [i for i in range(20)]
-# v = [max(np.exp(-i/2), 10e-5)/(np.sqrt(i + 9)) for i in t]
-# print(v)
-# print(10e-5/np.sqrt(1000))
-# plt.scatter(t, v)
-# # plt.show()
 
-test_distance_cost()
-# a = tf.Variable(tf.zeros([3,3]))
-# a[:,0:2].assign(1)
-# sess = tf.Session()
-# sess.run(tf.global_variables_initializer())
-# print(sess.run(a))
 # test_tf_gpu_cpu()
 # test_hdf5()
 # test_tf()
 
-# with tf.device('/gpu:0'):
-#         a = tf.constant([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0,1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[6, 9], name='a')
-#         b = tf.constant([2.0, 3.0, 4.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0,1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0], shape=[6, 9], name='b')
-#         c = tf.subtract(b, a)
-#     # Creates a session with log_device_placement set to True.
-# sess1 = tf.Session(config=tf.ConfigProto(log_device_placement=True))
-# print(sess1.run(c))
-# from numba import jit
 
-# @jit(nopython=True)
-# def f(x, y):
-#     # A somewhat trivial example
-#     return x + y
-
-# a = np.array([1,2,3,4])
-# print(f(a,a))

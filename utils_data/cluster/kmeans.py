@@ -42,7 +42,7 @@ def init_k(X, namelist, shape, n_cluster, distance):
     cluster = [[random.randrange(0, n_sample - 1)]]
     samples = [-1 for i in range(n_sample)]
     centroids = np.zeros((n_cluster, shape[1], shape[2]))
-    centroids[0] = X[namelist[cluster[0][0]]][:]
+    X[namelist[cluster[0][0]]].read_dirct(centroids[0])
     X[namelist[cluster[0][0]]].read_direct(centroids[0])
     x = np.zeros((shape[1], shape[2]))
     y = np.zeros((shape[1], shape[2]))
