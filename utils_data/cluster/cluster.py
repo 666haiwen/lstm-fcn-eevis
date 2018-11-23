@@ -15,7 +15,7 @@ from utils_data.cluster.dataset import get_dis_matrix, Dataset
 
 
 def cluster_test():
-    X = h5py.File(gl.ORIGNIL_SAMPLE_PATH + 'data\\orignal_sample.hdf5', 'r+')
+    X = h5py.File(gl.ORIGNIL_SAMPLE_PATH + 'data\\orignal_sample.hdf5', 'r')
     shape = (gl.TIMES_STEPS, gl.FEATRUE_NUMBER)
     before_time = time.time()
     funcList = [euclidean, related, sts, dtw, kullback_Liebler, base_LPC, pca_based]
@@ -32,7 +32,7 @@ def cluster_test():
     #     format(func.__name__, after_time - before_time))
 
     # Birch
-    birch = Birch(n_clusters=None, threshold=np.sqrt(690), namelist=namelist, shape=shape)
+    birch = Birch(n_clusters=100, threshold=np.sqrt(690), namelist=namelist, shape=shape)
     before_time = time.time()
     labels = birch.fit_predict(X)
     n_cluster = np.max(labels) + 1
@@ -46,6 +46,7 @@ def cluster_test():
     format(after_time - before_time))
     X.close()
 
+
 def set_Tsne():
     sample_path = gl.ORIGNIL_SAMPLE_PATH + 'data\\orignal_sample.hdf5'
     batch_path = gl.ORIGNIL_SAMPLE_PATH + 'data\\batch_sample.hdf5'
@@ -57,5 +58,5 @@ def set_Tsne():
         json.dump({'pos': X_embedded.tolist()}, fp)
 
 
-# cluster_test()
-set_Tsne()
+cluster_test()
+# set_Tsne()
