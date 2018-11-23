@@ -1,3 +1,4 @@
+# Authors: Chen zexian(zjuczx@zju.edu.cn)
 from collections import defaultdict
 from fastdtw import fastdtw
 from pysptk.sptk import lpc
@@ -7,22 +8,8 @@ from numpy import linalg as la
 from sklearn.metrics.pairwise import euclidean_distances
 
 
-def test_euclidean(x, y):
-    """ calculate distance between matrix x and y by euclidean distance
-
-    Params:
-        x, y: ndarray (time_steps, feature_numbers)
-
-    Returns:
-        res: ndarray (feature_numbers,)
-    """
-    shape = x.shape
-    res = euclidean_distances(x, y)
-    return np.mean(res)
-
-
 @jit(nopython=True, parallel=True)
-def euclidean(x, y, norm=2):
+def euclidean(x, y, minsize, norm=2):
     """ calculate distance between matrix x and y by euclidean distance
 
     Params:
@@ -32,17 +19,17 @@ def euclidean(x, y, norm=2):
     Returns:
         res: ndarray (feature_numbers,)
     """
-    shape = x.shape
-    res = np.zeros(shape[1])
-    for col in range(shape[1]):
+    size = min(minsize, x.shape[1])
+    res = np.zeros(size)
+    for col in range(size):
         if norm == 1:
             res[col] = np.sum(np.abs(x[:, col] - y[:, col]))
         else:
-            res[col] = (np.sum((x[:, col] - y[:, col])**norm))**(1/norm)
+            res[col] = np.sqrt((np.sum((x[:, col] - y[:, col])**2)))
     return np.mean(res)
 
 
-def related(x, y, d_type=2, beta=1.5):
+def related(x, y, d_type=2, beta=1.5, cheap=False):
     """ calculate distance between matrix x and y by
         Pearson's correlation coefficient and related distances
 
@@ -55,16 +42,16 @@ def related(x, y, d_type=2, beta=1.5):
     Returns:
         res: ndarray (feature_numbers,)
     """
-    shape = x.shape
-    res = np.zeros(shape[1])
-    for col in range(shape[1]):
+    size = x.shape[1] if cheap is not True else 2
+    res = np.zeros(size)
+    for col in range(size):
         cc = np.corrcoef(x[:, col], y[:, col])[0][1]
         res[col] = ((1 - cc) / (1 + cc))**beta if d_type == 1 else 2*(1 - cc)
     return np.mean(res)
 
 
-@jit(nopython=True, parallal=True)
-def sts(x, y):
+@jit(nopython=True, parallel=True)
+def sts(x, y, cheap=False):
     """ calculate distance between matrix x and y by short time series distance
 
     Params:
@@ -73,17 +60,17 @@ def sts(x, y):
     Returns:
         res: ndarray (feature_numbers,)
     """
-    shape = x.shape
-    res = np.zeros(shape[1])
+    size = x.shape[1] if cheap is not True else 2
+    res = np.zeros(size)
     dis_time = 20 / 2000    # 20s --> 2001 steps
-    for col in range(shape[1]):
+    for col in range(size):
         res[col] = np.sum((x[1:, col] - x[:-1, col] - y[1:, col] + y[:-1, col])**2)
         res[col] = np.sqrt(res[col]) / dis_time
     return np.mean(res)
 
 
-@jit(nopython=True, parallal=True)
-def dtw(x, y):
+@jit(nopython=True, parallel=True)
+def dtw(x, y, cheap=False):
     """ calculate distance between matrix x and y by Dynamic time warping
 
     Params:
@@ -92,16 +79,16 @@ def dtw(x, y):
     Returns:
         res: ndarray (feature_numbers,)
     """
-    return euclidean(x, y, norm=1)
-    shape = x.shape
-    res = np.zeros(shape[1])
-    for col in range(shape[1]):
+    return euclidean(x, y, norm=1, cheap=cheap)
+    size = x.shape[1] if cheap is not True else 2
+    res = np.zeros(size)
+    for col in range(size):
         res[col] = fastdtw(x[:, col], y[:, col])[0]
     return np.mean(res)
 
 
-@jit(nopython=True, parallal=True)
-def kullback_Liebler(x, y, s=20):
+@jit(nopython=True, parallel=True)
+def kullback_Liebler(x, y, s=20, cheap=False):
     """ calculate distance between matrix x and y by
         transition probabilities of two Markov chains
 
@@ -112,11 +99,12 @@ def kullback_Liebler(x, y, s=20):
     Returns:
         res: ndarray (feature_numbers,)
     """
-    shape = x.shape
-    res = np.zeros(shape[1])
+    size = x.shape[1] if cheap is False else 2
+    timeLength = x.shape[0]
+    res = np.zeros(size)
     p1 = np.zeros((s, s))
     p2 = np.zeros((s, s))
-    for col in range(shape[1]):
+    for col in range(size):
         min_v = min(np.min(x[:, col]), np.min(y[:, col]))
         max_v = max(np.max(x[:, col]), np.max(y[:, col]))
         bin_width = (max_v - min_v) / s
@@ -126,7 +114,7 @@ def kullback_Liebler(x, y, s=20):
         else:
             tmp_x = (x[:, col] - min_v) / bin_width
             tmp_y = (y[:, col] - min_v) / bin_width
-        for i in range(shape[0] - 1):
+        for i in range(timeLength - 1):
             a = int(tmp_x[i]) if tmp_x[i] < s else s - 1
             b = int(tmp_x[i + 1]) if tmp_x[i + 1] < s else s - 1
             p1[a][b] += 1
@@ -246,7 +234,7 @@ def get_lpc_frameAndautocoeff(x, frame=20):
 
 
 @jit(nopython=True)
-def base_LPC(x, y, frame=20):
+def base_LPC(x, y, frame=20, cheap=False):
     """ calculate distance between matrix x and y by
     Dissimilarity between two spoken words
 
@@ -257,10 +245,10 @@ def base_LPC(x, y, frame=20):
         res: ndarray (feature_numbers,)
     """
     # dtw time points correspond ok time series correspond??
-    shape = x.shape
-    res = np.zeros(shape[1])
+    size = x.shape[1] if cheap is not True else 2
+    res = np.zeros(size)
     Rx = Ry = []
-    for col in range(shape[1]):
+    for col in range(size):
         pattern_x, Rx = get_lpc_frameAndautocoeff(x[:, col])
         pattern_y, Ry = get_lpc_frameAndautocoeff(y[:, col])
         _, dtw_x2y = frame_dtw(x[:, col], y[:, col], Rx, Ry, frame)

@@ -1,3 +1,4 @@
+# Authors: Chen zexian(zjuczx@zju.edu.cn)
 import sys
 import random
 import time
@@ -97,6 +98,8 @@ def kmeans(X, namelist, shape, distance, n_cluster=100, max_iter=200):
     samples: list, lable of each sample
     centroids: the center of each cluster, shape(n_cluster, matrix(n, k))
     """
+    if len(namelist) != shape[0]:
+        raise ValueError('The namelist {} is not equal to the n_samples in shape[0] {}',format(namelist, shape[0]))
     n_sample = shape[0]
     print('Begin Kmeans cluster by distance func ' + distance.__name__)
     cluster, centroids, samples = init_k(X, namelist, shape, n_cluster, distance)

@@ -10,7 +10,8 @@ NO_FILLING = 1    # 1 means no zero filling
                   # 0 means with zeor filling
 
 # for hdf5
-BATCH_HDF5 = 534 # 2670 / 5 = 534
+BATCH_HDF5 = 300 # 2670 / 5 = 534
+BATCH_SIZE = 9
 # SAX
 TIME_STEPS = 2001
 PAA_RATE = 11

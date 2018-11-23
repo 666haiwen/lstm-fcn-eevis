@@ -1,3 +1,4 @@
+# Authors: Chen zexian(zjuczx@zju.edu.cn)
 import math
 from collections import defaultdict
 from scipy.stats import chi2

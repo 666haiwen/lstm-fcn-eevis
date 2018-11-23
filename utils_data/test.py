@@ -1,16 +1,15 @@
+import sys
+import os
 import time
 import h5py
-import matplotlib.pyplot as plt
-import os.path as osp, os
 import numpy as np
-import tensorflow as tf
-from utils import dis, test_transfer_eff, sax, get_sm
-from const import PAA_W, PAA_RATE, BATCH_HDF5
-from cluster.distance import euclidean, tf_euclidean
+
+sys.path.append(os.getcwd())
+from utils_data.const import PAA_W, PAA_RATE, BATCH_HDF5
 from data_parse import const as gl
 from data_parse.utils import get_json_file
+from utils_data.utils import test_transfer_eff, sax, get_sm
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 
 def test_eff():
@@ -91,5 +90,3 @@ def test_hdf5():
 # test_tf_gpu_cpu()
 # test_hdf5()
 # test_tf()
-
-
