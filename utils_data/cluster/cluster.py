@@ -32,7 +32,9 @@ def cluster_test():
     #     format(func.__name__, after_time - before_time))
 
     # Birch
-    birch = Birch(n_clusters=100, threshold=np.sqrt(690), namelist=namelist, shape=shape)
+    cluster_list = [400, 300, 200, 100, 50]
+    for cluster in cluster_list:
+        birch = Birch(n_clusters=cluster, threshold=np.sqrt(690), namelist=namelist, shape=shape)
     before_time = time.time()
     labels = birch.fit_predict(X)
     n_cluster = np.max(labels) + 1
@@ -40,7 +42,7 @@ def cluster_test():
     for i, v in enumerate(labels):
         y[v].append(i)
     after_time = time.time()
-    with open(gl.ORIGNIL_SAMPLE_PATH + 'data\\birch.json', 'w') as fp:
+        with open(gl.ORIGNIL_SAMPLE_PATH + 'data\\birch-{}.json'.format(cluster), 'w') as fp:
         json.dump({'labels': y, 'time': after_time - before_time}, fp)
     print('Finish the Birch cluster,\n And the Time cost is {}'.\
     format(after_time - before_time))

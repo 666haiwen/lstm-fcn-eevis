@@ -56,7 +56,6 @@
         if (d[1] < yScale[0])
           yScale[0] = d[1];
       });
-      console.log(xScale, yScale);
       d();
     });
     let d = () => $.getJSON("../../original_sample/data/fault_list.json", data => { 
@@ -65,6 +64,7 @@
           rateY = 900 / (yScale[1] - yScale[0]);
       for (let i = 0; i < faultMark.length; i++)
         faults.push({
+            'id': faultMark[i]['sample_id'],
             'label': label[i],
             'class': birch[label[i]].length > LABEL_THREHOLD ? 'label-show' : 'label-hide',
             'color': birch[label[i]].length > LABEL_THREHOLD ? 'black' : '#80808080',
@@ -84,6 +84,9 @@
         .attr('r', 4)
         .attr('cx', d => d.pos.x)
         .attr('cy', d => d.pos.y)
+        .on('click', (d) => {
+          console.log(d);
+        });
     }
     let hightLightLabel = -1;
     const labelSelect = $('#label-select');
