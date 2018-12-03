@@ -1,0 +1,100 @@
+body {
+    color: #f6f6f6;
+}
+
+.tsne-div {
+    position: absolute;
+    left: 7px;
+    width: 1200px;
+    height: 857px;
+    border: 2px;
+    margin-bottom: 10px;
+    background: #fff;
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(26,26,26,.1);
+    box-sizing: border-box;
+}
+
+.disMatrix-div {
+    position: absolute;
+    left: 1257px;
+    border: 2px;
+    padding-top:  10px;
+    margin-bottom: 10px;
+    background: #fff;
+    overflow: scroll;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(26,26,26,.1);
+    box-sizing: border-box;
+    color: black;
+    width: 1200px;
+    height: 857px;
+}
+
+.control-div {
+    position: absolute;
+    top: 900px;
+    left: 20px;
+}
+
+.wavelines-div {
+    position: absolute;
+    overflow: hidden;
+    top: 980px;
+    width: 2600px;
+    height: 300px;
+}
+
+.waveline-div {
+    position: absolute;
+    border: 2px;
+    top: 10px;
+    width: 800px;
+    height: 250px;
+    margin-bottom: 10px;
+    background: #fff;
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(26,26,26,.1);
+    box-sizing: border-box;
+}
+
+.waveline-title {
+    color: black;
+    font-size: 16px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+#topology-div {
+    position: absolute;
+    left: 1257px;
+    border: 2px;
+    margin-bottom: 10px;
+    background: #fff;
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(26,26,26,.1);
+    box-sizing: border-box;
+}
+
+#birch-select {
+    background: #faebd73d;
+}
+
+.links-line {
+    stroke: #aaa;
+  }
+  
+.nodes-circle {
+    pointer-events: all;
+    fill: #4157f580;
+    stroke: none;
+    r: 2.5;
+  }
+
+.faultcenter {
+    stroke: #ff5722;
+    stroke-width: 1px;
+    r: 5px;
+}

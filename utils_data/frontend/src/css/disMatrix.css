@@ -1,0 +1,46 @@
+.dis-tooltip {
+    color: black;
+    position: absolute;
+    background: #fff;
+    overflow: hidden;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(26, 26, 26, 0.2);
+    box-sizing: border-box;
+    width: 120px;
+    height: 140px;
+}
+
+.dis-tooltip p{
+    color: #1a1a1a;
+    font-size: 14px;
+    line-height: 18px;
+    padding-left: 15px;
+}
+
+.dis-ul {
+    margin-bottom: 0;
+    box-shadow: none;
+}
+
+.dis-row {
+    position: absolute;
+    top: 10px;
+    left: 50px;
+    height: 30px;
+}
+
+.dis-box {
+    position: absolute;
+    width: 30px;
+    border-bottom: 1px solid #f0f2f7;
+    font-size: 14px;
+    line-height: 14px;
+}
+
+.dis-col {
+    position: absolute;
+    top: 40px;
+    left: 10px;
+    width: 30px;
+    margin-top: 10px;
+}

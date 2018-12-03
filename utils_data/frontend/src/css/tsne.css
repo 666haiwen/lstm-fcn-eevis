@@ -1,0 +1,69 @@
+.tsne-panel {
+    position: absolute;
+    top: 20px;
+    left: 0px;
+}
+
+.lasso path {
+    stroke: rgb(80,80,80);
+    stroke-width:2px;
+}
+
+.lasso .drawn {
+    fill-opacity:.05 ;
+}
+
+.lasso .loop_close {
+    fill:none;
+    stroke-dasharray: 4,4;
+}
+
+.lasso .origin {
+    fill:#3399FF;
+    fill-opacity:.5;
+}
+
+.not_possible {
+    fill: rgb(200,200,200);
+}
+
+.possible {
+    fill: #EC888C;
+}
+
+.selected {
+    /* fill: steelblue; */
+}
+
+.sample-slect {
+    stroke: #ff5722;
+    stroke-width: 2px;
+    r: 7px;
+}
+
+.circle-sample {
+    cursor:pointer;
+    fill-opacity: 0.5;
+}
+
+.label-show {
+    fill: #1a1a1aa0;
+}
+
+.label-hide {
+    fill: #80808020;
+}
+
+.hightLight-x {
+    fill: #EC888C;
+    color: #EC888C;
+    font-size: large;
+    fill-opacity: 1.0;
+}
+
+.hightLight-y {
+    fill: #8BC34A;
+    color: #8BC34A;
+    font-size: large;
+    fill-opacity: 1.0;
+}

@@ -42,3 +42,6 @@ def get_json_file(filePath, fileName, defaultRes={}):
         fileRes = json.load(f)
         return fileRes
     return defaultRes
+
+a = get_json_file('G:\\KDD-EEVIS\\original_sample\\data\\', 'dis_info.json')
+print('!!!')

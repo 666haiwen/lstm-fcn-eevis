@@ -8,6 +8,7 @@ import warnings
 from math import sqrt
 import numpy as np
 import gc
+import sys
 
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.base import TransformerMixin, ClusterMixin, BaseEstimator
@@ -139,6 +140,7 @@ class _CFNode(object):
         self.squared_norm_ = []
         self.prev_leaf_ = None
         self.next_leaf_ = None
+
 
     def append_subcluster(self, subcluster, copy=False):
         n_samples = len(self.subclusters_)
@@ -433,6 +435,26 @@ class Birch(BaseEstimator, TransformerMixin, ClusterMixin):
         #new for hdf5 clustering
         self.namelist = namelist
         self.shape = shape
+        #new
+        self._old_centroids = None
+        self.dis = None
+
+    def fit_new_n_cluster(self, X, n_clusters):
+        if self.n_clusters is not None and self.n_clusters < n_clusters:
+            raise  warnings.warn("The new n_clusters {} is large than old one {}".format(n_clusters, self.n_clusters))
+            return
+
+        if self.n_clusters is None:
+            clusterer = 0
+            for leaf in self._get_leaves():
+                clusterer += len(leaf.centroids_)
+        else:
+            clusterer = self.n_clusters
+        self.n_clusters = n_clusters
+        self._merge_cluster(clusterer)
+        self.labels_ = self.predict(X)
+        return self.labels_
+
 
     def fit(self, X, y=None):
         """
@@ -492,12 +514,19 @@ class Birch(BaseEstimator, TransformerMixin, ClusterMixin):
                 self.root_.append_subcluster(new_subcluster1)
                 self.root_.append_subcluster(new_subcluster2)
 
+        clusterer = 0
+        for leaf in self._get_leaves():
+            clusterer += len(leaf.centroids_)
+        if self.n_clusters is not None and clusterer > self.n_clusters:
+            self._merge_cluster(clusterer)
+            self.labels_ = self.predict(X)
+            return self
+
         centroids = []
         for leaf in self._get_leaves():
             for c in leaf.centroids_:
                 centroids.append(c)
         self.subcluster_centers_ = centroids
-
         self._global_clustering(X)
         return self
 
@@ -517,7 +546,56 @@ class Birch(BaseEstimator, TransformerMixin, ClusterMixin):
             leaf_ptr = leaf_ptr.next_leaf_
         return leaves
 
-    def partial_fit(self, namelist, shape, X=None, y=None):
+    def _merge_cluster(self, clusterer):
+        if self.dis is None:
+            centroids = []
+            for leaf in self._get_leaves():
+                for i, c in enumerate(leaf.centroids_):
+                    centroids.append({'c': c, 'n': leaf.subclusters_[i].n_samples_})
+            dis = [[np.sqrt(np.sum((centroids[i]['c'] - centroids[j]['c'])**2)) for i in range(clusterer)] for j in range(clusterer)]
+        else:
+            dis = self.dis
+            centroids = self._old_centroids
+        number = 0
+        while clusterer - number > self.n_clusters :
+            number += 1
+            x = y = -1
+            tmp = sys.float_info.max
+            for i in range(clusterer - 1):
+                if dis[i][i] == -1:
+                    continue
+                for j in range(i + 1, clusterer):
+                    if dis[i][j] <= 0:
+                        continue
+                    if  dis[i][j] < tmp:
+                        tmp = dis[i][j]
+                        x = i
+                        y = j
+            nx = centroids[x]['n']
+            ny = centroids[y]['n']
+            centroids[x]['n'] += centroids[y]['n']
+            centroids[x]['c'] = centroids[x]['c'] * (nx / centroids[x]['n']) + \
+                centroids[y]['c'] * (ny / centroids[x]['n'])
+            for i in range(clusterer):
+                dis[y][i] = dis[i][y] = -1
+                if i == x or dis[x][i] == -1:
+                    continue
+                dis[i][x] = dis[x][i] = np.sqrt(np.sum((centroids[i]['c'] - centroids[x]['c'])**2))
+            dis[x][y] = dis[y][x] = -1
+        
+        self.subcluster_centers_ = []
+        for i in range(clusterer):
+            if dis[i][i] != -1:
+                self.subcluster_centers_.append(centroids[i]['c'])
+        self._subcluster_norms = np.zeros(len(self.subcluster_centers_))
+        for i in range(len(self.subcluster_centers_)):
+            self._subcluster_norms[i] = np.dot(self.subcluster_centers_[i], self.subcluster_centers_[i])
+        self.subcluster_labels_ = np.arange(len(self.subcluster_centers_))
+        self._old_centroids = centroids
+        self.dis = dis
+
+
+    def partial_fit(self, X=None, y=None):
         """
         Online learning. Prevents rebuilding of CFTree from scratch.
 
@@ -602,9 +680,9 @@ class Birch(BaseEstimator, TransformerMixin, ClusterMixin):
             Transformed data.
         """
         check_is_fitted(self, 'subcluster_centers_')
-        return euclidean_distances(X, self.subcluster_centers_)
+        return euclidean_distances(X, self.subcluster_centers_)    
 
-    
+
     def _global_clustering(self, X=None):
         """
         Global clustering for the subclusters obtained after fitting
@@ -644,6 +722,5 @@ class Birch(BaseEstimator, TransformerMixin, ClusterMixin):
             # samples and finds the final centroids.
             self.subcluster_labels_ = clusterer.fit_predict(
                 self.subcluster_centers_)
-
         if compute_labels:
             self.labels_ = self.predict(X)

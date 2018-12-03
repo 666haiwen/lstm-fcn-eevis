@@ -7,5 +7,6 @@
 /samples_another_half
 /logs
 /.vscode
+node_modules
 __pycache__
 eevis.tar.xz

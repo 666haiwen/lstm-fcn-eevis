@@ -2,109 +2,12 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title> KDD-EEVIS-Tsne </title>
-    <script src="https://d3js.org/d3.v5.min.js"></script>
-    <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
-    <link href="./index.css" rel="stylesheet">
-    </script>
+    <title> KDD-EEVIS </title>
 </head>
 
 <body>
-  <div id="root">
-      <svg id="tsne-panel">
-      </svg>
-      <div class="label-div">
-        <select id="label-select">
-          <option value="-1"> Show all Labels</option>
-        </select>
-      </div>
-  </div>
-  <script>
-    const Width = 1600, Height = 980, LABEL_THREHOLD = 3, HIGHL_LIGHT_COLOR= '#2196F3';
-    const SHOW_COLOR = 'black', HIDEN_COLOR = '#80808080';
-    let tsneSvg = d3.select('#tsne-panel')
-      .attr('width', Width)
-      .attr('height', Height)
-      .attr('transform', 'translate(50,50)')
-    let faultMark, birch, pos;
-    let faults = [];
-    let label = [];
-    $.getJSON("../../original_sample/data/birch.json", data => { 
-      birch = data.labels.sort((a,b) => b.length - a.length);
-      for (let i = 0; i < birch.length; i++) {
-        if (birch[i].length > LABEL_THREHOLD) {
-          labelSelect.append($('<option />').val(i).text('Label-' + i));
-        }
-        for (let j = 0; j < birch[i].length; j++) 
-          label[birch[i][j]] = i;
-      }
-      b();
-    });
-    let xScale, yScale;
-    let b = () => $.getJSON("../../original_sample/data/fault_mark.json", data => { faultMark = data; c();});
-    let c = () => $.getJSON("../../original_sample/data/tsne-euclidean.json", data => { 
-      pos = data.pos; 
-      xScale = [pos[0][0], pos[0][0]];
-      yScale = [pos[0][1], pos[0][1]];
-      pos.forEach(d => {
-        if (d[0] > xScale[1])
-          xScale[1] = d[0];
-        if (d[0] < xScale[0])
-          xScale[0] = d[0];
-        if (d[1] > yScale[1])
-          yScale[1] = d[1];
-        if (d[1] < yScale[0])
-          yScale[0] = d[1];
-      });
-      d();
-    });
-    let d = () => $.getJSON("../../original_sample/data/fault_list.json", data => { 
-      let fault_list = data.fault_list;
-      let rateX = 1500 / (xScale[1] - xScale[0]),
-          rateY = 900 / (yScale[1] - yScale[0]);
-      for (let i = 0; i < faultMark.length; i++)
-        faults.push({
-            'id': faultMark[i]['sample_id'],
-            'label': label[i],
-            'class': birch[label[i]].length > LABEL_THREHOLD ? 'label-show' : 'label-hide',
-            'color': birch[label[i]].length > LABEL_THREHOLD ? 'black' : '#80808080',
-            'fault': fault_list[faultMark[i]['mark']],
-            'pos': {'x': (pos[i][0] - xScale[0]) * rateX + 10, 'y': (pos[i][1] - yScale[0]) * rateY + 10}
-        });
-      drawCircle();
-    });
-    let drawCircle = () => {
-      tsneSvg.append('g')
-        .selectAll('circle')
-        .data(faults).enter()
-        .append('circle')
-        .attr('id', d => 'label-' + d.label)
-        .attr('class', d => d.class)
-        .attr('fill', d => d.color)
-        .attr('r', 4)
-        .attr('cx', d => d.pos.x)
-        .attr('cy', d => d.pos.y)
-        .on('click', (d) => {
-          console.log(d);
-        });
-    }
-    let hightLightLabel = -1;
-    const labelSelect = $('#label-select');
-    const hightLight = () => {
-      tsneSvg.selectAll('.label-show')
-        .attr('fill', HIDEN_COLOR);
-      let val = labelSelect.val();
-      if (val >= 0) {
-        const circle = tsneSvg.selectAll('#label-' + val)
-          .attr('fill', HIGHL_LIGHT_COLOR);
-        hightLightLabel = val; 
-      }
-      else {
-        tsneSvg.selectAll('.label-show')
-        .attr('fill', SHOW_COLOR);
-      }
-    };
-    $('#label-select').change(hightLight);
-  </script>
+  <div id="root"></div>
 </body>
+
+<script src="bundle.js"></script>
 </html>

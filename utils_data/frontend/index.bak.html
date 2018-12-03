@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title> KDD-EEVIS-Tsne </title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+    <link href="./index.css" rel="stylesheet">
+    </script>
+</head>
+
+<body>
+  <div id="root">
+      <svg id="tsne-panel">
+      </svg>
+      <div class="label-div">
+        <select id='birch-select'>
+          <option value="-1">Select the diffierent Birch</option>
+          <option value="500">500 Labels of Birch</option>
+          <option value="400">400 Labels of Birch</option>
+          <option value="300">300 Labels of Birch</option>
+          <option value="200">200 Labels of Birch</option>
+          <option value="100">100 Labels of Birch</option>
+          <option value="50">50 Labels of Birch</option>
+        </select>
+        <select id="label-select">
+          <option value="-1"> Show all Labels</option>
+        </select>
+        <div class='selected-txt-1'>
+          <t class='sample-txt-id'>Sample Id: </t>
+          <t class='sample-txt-fault'>Fault Center: </t>
+        </div>
+        <div class='selected-txt-2'>
+          <t class='sample-txt-id'>Sample Id: </t>
+          <t class='sample-txt-fault'>Fault Center: </t>
+        </div>
+        <t class='sample-txt-dis'>Distance: </t>
+        <t class='sample-txt-dis-a'>Distance a to b: </t>
+        <t class='sample-txt-dis-b'>Distance b to a: </t>
+        <button id='show-fixed-label' onclick="showLabel()">Label Of this Sample</button>
+      </div>
+  </div>
+  <script>   
+    const Width = 1600, Height = 980, LABEL_THREHOLD = 3, HIGHL_LIGHT_COLOR= '#2196F3';
+    const SHOW_COLOR = 'black', HIDEN_COLOR = '#80808080'; 
+    const labelSelect = $('#label-select');
+    const tsneSvg = d3.select('#tsne-panel')
+        .attr('width', Width)
+        .attr('height', Height)
+        .attr('transform', 'translate(50,50)')
+    let faultMark, fault_list, birch, pos, dis;
+    let faults = [];
+    let label = [];
+    let xScale, yScale;
+
+    $(() => {
+      let getFaultMark = () => $.getJSON("../../original_sample/data/fault_mark.json", data => { faultMark = data; getTsne();});
+      let getTsne = () => $.getJSON("../../original_sample/data/tsne-euclidean.json", data => { 
+        pos = data.pos; 
+        xScale = [pos[0][0], pos[0][0]];
+        yScale = [pos[0][1], pos[0][1]];
+        pos.forEach(d => {
+          if (d[0] > xScale[1])
+            xScale[1] = d[0];
+          if (d[0] < xScale[0])
+            xScale[0] = d[0];
+          if (d[1] > yScale[1])
+            yScale[1] = d[1];
+          if (d[1] < yScale[0])
+            yScale[0] = d[1];
+        });
+        // getDis();
+        getFaultList();
+      });
+      // let getDis = () => $.getJSON("../../original_sample/data/dis_info.json", data => { dis = data.dis; console.log(dis[1][2]); getFaultList();});
+      let getFaultList = () => $.getJSON("../../original_sample/data/fault_list.json", data => { 
+        fault_list = data.fault_list;
+        let rateX = 1500 / (xScale[1] - xScale[0]),
+            rateY = 900 / (yScale[1] - yScale[0]);
+        for (let i = 0; i < faultMark.length; i++)
+          faults.push({
+              'id': faultMark[i]['sample_id'],
+              'label': null,
+              'class': 'label-hide',
+              'color': '#80808080',
+              'fault': fault_list[faultMark[i]['mark']],
+              'pos': {'x': (pos[i][0] - xScale[0]) * rateX + 10, 'y': (pos[i][1] - yScale[0]) * rateY + 10}
+          });
+        drawCircle(faults);
+      });
+      getFaultMark();
+      $('#birch-select').change(getBirch);
+      $('#label-select').change(hightLight);
+    });
+
+    const getBirch = () => {
+      let birchVal = $('#birch-select').val();
+      d3.select('#label-select').selectAll('option').remove();
+      labelSelect.append($('<option />').val(-1).text('Select the diffierent Birch'));
+
+      const name = 'birch-' + birchVal + '.json';
+      $.getJSON("../../original_sample/data/" + name, data => { 
+        birch = data.labels.sort((a,b) => b.length - a.length);
+        for (let i = 0; i < birch.length; i++) {
+          if (birch[i].length > LABEL_THREHOLD) {
+            labelSelect.append($('<option />').val(i).text('Label-' + i));
+          }
+          for (let j = 0; j < birch[i].length; j++) 
+            label[birch[i][j]] = i;
+        }
+        for (let i = 0; i < faultMark.length; i++) {
+          faults[i]['label'] = 'label-' + label[i];
+          faults[i]['class'] = birch[label[i]].length > LABEL_THREHOLD ? 'label-show' : 'label-hide';
+          faults[i]['color'] = birch[label[i]].length > LABEL_THREHOLD ? 'black' : '#80808080';
+        }
+        drawCircle(faults);
+      });
+    }
+    
+    const getDistance = (id_a, id_b, fa, fb) => {
+      $.getJSON("../../original_sample/ST_" + id_a + '/bus_distance.json', data_a => {
+        $.getJSON("../../original_sample/ST_" + id_b + '/bus_distance.json', data_b => {
+          const dis_a = [data_b.indexOf(fa.i), data_b.indexOf(fa.j)], 
+                dis_b = [data_a.indexOf(fb.i), data_a.indexOf(fb.j)];
+          $('.sample-txt-dis-a').text('Distance a to b: ' + dis_a);
+          $('.sample-txt-dis-b').text('Distance b to a: ' + dis_b);
+          });
+          });
+      };
+    let selectedId = [];
+    let drawCircle = (faults) => {
+      tsneSvg.selectAll('circle').remove();
+      tsneSvg.append('g')
+        .selectAll('circle')
+        .data(faults).enter()
+        .append('circle')
+        .classed('hover', true)
+        .attr('id', d => 'sample-' + d.id)
+        .attr('class', d => 'circle-sample ' + d.class + ' ' + d.label)
+        .attr('fill', d => d.color)
+        .attr('r', 4)
+        .attr('cx', d => d.pos.x)
+        .attr('cy', d => d.pos.y)
+        .on('click', (d) => {
+          if (selectedId.length == 2) {
+            d3.select('#sample-' + selectedId[0]['id'])
+              .attr('stroke', null)
+              .attr('fill', selectedId[0]['fill'])
+            d3.select('#sample-' + selectedId[1]['id'])
+              .attr('stroke', null)
+              .attr('fill', selectedId[1]['fill'])
+            d3.select('.selected-txt-1').select('.sample-txt-id').text('Sample Id: ');
+            d3.select('.selected-txt-1').select('.sample-txt-fault').text('Fault Center: ');
+            d3.select('.selected-txt-2').select('.sample-txt-id').text('Sample Id: ');
+            d3.select('.selected-txt-2').select('.sample-txt-fault').text('Fault Center: ');
+            d3.select('.sample-txt-dis').text('Distance: ');
+            d3.select('.sample-txt-dis-a').text('Distance a to b: ');
+            d3.select('.sample-txt-dis-b').text('Distance b to a: ');
+            selectedId = []
+          }
+          const selected = tsneSvg.select('#sample-' + d.id);
+          selectedId.push({'id': d.id, 'fill': selected.attr('fill')})
+          tsneSvg.select('#sample-' + d.id)
+            .attr('fill', 'burlywood')
+            .attr('stroke', 'red');
+          const textId = selectedId.length;
+          const textDiv = d3.select('.selected-txt-' + textId);
+          textDiv.select('.sample-txt-id').text('Sample Id: ' + d.id);
+          textDiv.select('.sample-txt-fault').text('Fault Center: ' + d.fault.i + '; ' + d.fault.j);
+          if (selectedId.length == 2) {
+            let fault_a = faults[selectedId[0].id].fault, fault_b = faults[d.id].fault;
+            getDistance(selectedId[0].id, selectedId[1].id, fault_a, fault_b);
+            // let disValue = (dis[fault_a.i][fault_b.j] + dis[fault_a.i][fault_b.i] + dis[fault_a.j][fault_b.j] + dis[fault_a.j][fault_b.i]) / 4;
+            // textDiv.select('.sample-txt-dis').text('Distance ' + disValue);
+          }
+        });
+    }
+    const showLabel = () => {
+      const length = selectedId.length
+      if (length != 1) 
+        return
+      const selectLabel = label[selectedId[length - 1].id]
+      labelSelect.val(selectLabel);
+      hightLight();
+    }
+    let hightLightLabel = -1;
+    const hightLight = () => {
+      tsneSvg.selectAll('.label-show')
+        .attr('fill', HIDEN_COLOR);
+      let val = labelSelect.val();
+      if (val >= 0) {
+        const circle = tsneSvg.selectAll('.label-' + val)
+          .attr('fill', HIGHL_LIGHT_COLOR);
+        hightLightLabel = val; 
+      }
+      else {
+        tsneSvg.selectAll('.label-show')
+        .attr('fill', SHOW_COLOR);
+      }
+    };
+  </script>
+</body>
+</html>
