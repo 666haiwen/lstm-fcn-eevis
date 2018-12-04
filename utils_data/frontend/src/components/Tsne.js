@@ -54,8 +54,8 @@ class Tsne extends React.Component {
       this.setState({
         faults: faults,
         Number: faults.length,
-        bus_dis: data.bus_dis.dis,
-        bus_index: data.bus_index
+        // bus_dis: data.bus_dis.dis,
+        // bus_index: data.bus_index
       });
     });
   }
@@ -67,7 +67,6 @@ class Tsne extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    console.log('next props!');
     if (nextProps.birchId != this.state.birch) {
       api.getBirch(nextProps.birchId).then(data => {
         const birch = data['labels'].sort((a,b) => b.length - a.length);
@@ -104,49 +103,42 @@ class Tsne extends React.Component {
   }
 
   showLabel(d) {
+    console.log('!!!!!!!!!');
     if (d.class == 'label-hide') 
       return;
+    this.tsne.selectAll('circle')
+      .classed('label-selected', false);
     this.tsne.selectAll('.label-hide')
       .attr('fill', gl.NO_LABEL_COLOR);
     this.tsne.selectAll('.label-show')
         .attr('fill', gl.HIDEN_COLOR);
     const val = d.label;
     this.tsne.selectAll('.label-' + val)
-        .attr('fill', gl.HIGHL_LIGHT_COLOR);
+        .classed('label-selected', true);
   }
 
   showDisMatrix(samples) {
     const sampleIds = [];
-    const dis = [];
     const disSample = [];
     samples.each(v => {
       sampleIds.push(v.id);
-    });
-    const {bus_dis, bus_index} = this.state;
-    const getMinDis = (a, b) => {
-      const bus_a = [bus_index[a.i], bus_index[a.j]];
-      const bus_b = [bus_index[b.i], bus_index[b.j]];
-      return Math.min(...[bus_dis[bus_a[0]][bus_b[0]], bus_dis[bus_a[0]][bus_b[1]],
-        bus_dis[bus_a[1]][bus_b[0]], bus_dis[bus_a[1]][bus_b[1]]]);
-    };
-    for (let i = 0; i < sampleIds.length; i++) {
-      const tmp_dis = [];
-      const fault_i = this.state.faults[sampleIds[i]].fault;
-      for (let j = 0; j < sampleIds.length; j++) {
-        const fault_j = this.state.faults[sampleIds[j]].fault;
-        tmp_dis.push(getMinDis(fault_i, fault_j));
-      }
-      dis.push(tmp_dis);
       disSample.push({
-        id: sampleIds[i],
-        fault: this.state.faults[sampleIds[i]].fault
+        id: v.id,
+        fault: this.state.faults[v.id].fault
       });
+    });
+    if (sampleIds.length > 0) 
+      api.getSampleDis(sampleIds).then(d => {
+        this.props.ShowDisMatrix(d.dis, disSample);
+      });
+    else {
+      this.tsne.select('#sample-' + this.sampleId)
+          .classed('sample-select', false);
+      this.props.ShowNone();      
     }
-    this.props.ShowDisMatrix(dis, disSample);
   }
 
   drawCircle(faults) {
-    console.log('draw Circle!');
     if (!this.tsne)
       return;
     this.tsne.selectAll('g').remove();
@@ -162,7 +154,8 @@ class Tsne extends React.Component {
         .attr('cy', d => d.pos.y)
         .on('dblclick', d => this.showLabel(d))
         .on('click', d => this.addSample(d));
-    
+    circles.append('title')
+        .text(d => 'busId: ' + d.id);
       // Lasso functions
     const lasso_start = () => {
         lasso.items()
@@ -215,40 +208,14 @@ class Tsne extends React.Component {
   }
 
   addSample(d) {
-    if (this.sampleId.includes(d.id)) {
-      this.deleteSample(d);
-      return;
+    if (this.sampleId != d.id) {
+      this.tsne.select('#sample-' + this.sampleId)
+          .classed('sample-select', false);
+      this.tsne.select('#sample-' + d.id)
+          .classed('sample-select', true);
+      this.sampleId = d.id;
+      this.props.TopoSample(d.id, d.fault);
     }
-    const id = this.sampleId.length;
-    this.sampleId.push(d.id);
-    this.sampleColor.push(this.tsne.select('#sample-' + d.id).attr('fill'));
-    this.sampleLabel.push(this.tsne.select('#sample-' + d.id).attr('class'));
-    this.tsne.select('#sample-' + d.id)
-        .attr('fill', gl.FAULT_CENTER_FILL[id])
-        .attr('r', '7')
-        .attr('class', 'sample-slect');
-    this.props.AddSample([d.id], [d.fault]);
-  }
-
-  deleteSample(d) {
-    const id = this.sampleId.indexOf(d.id);
-    this.tsne.select('#sample-' + d.id)
-        .attr('class', this.sampleLabel[id])
-        .attr('fill', this.sampleColor[id])
-        .attr('stroke', 'none')
-        .attr('r', 4);
-    this.sampleLabel.splice(id, 1);
-    this.sampleColor.splice(id, 1);
-    this.sampleId.splice(id, 1);
-    this.props.DeleteSample([d.id]);
-  }
-
-  clear() {
-    this.props.DeleteSample(this.sampleId);
-    this.sampleColor = [];
-    this.sampleId = [];
-    this.sampleLabel = [];
-    this.drawCircle(this.state.faults);
   }
 
   render() {
@@ -257,7 +224,6 @@ class Tsne extends React.Component {
       <div className='tsne-div'>
         <svg className='tsne-panel'>
         </svg>
-        <button onClick={() => {this.clear();}}>Clear</button>
       </div>
     );
   }

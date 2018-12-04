@@ -109,7 +109,6 @@ class DisMatrix extends React.Component {
       rowList.push(<p key={i} className='dis-box' id={'dis-box-row-' + v.id} style={{left: i * gl.DIS_MATRIX_LENGTH}}>{v.id}</p>);
       colList.push(<p key={i} className='dis-box' id={'dis-box-col-' + v.id}style={{top: i * gl.DIS_MATRIX_LENGTH}}>{v.id}</p>);
     });
-
     return (
       <div className='disMatrix-div'>
         <div className='dis-ul dis-row'>

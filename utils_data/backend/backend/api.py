@@ -11,19 +11,12 @@ def get_tsne(request):
 
 def _get_tsne(request):
     pos = read_json_file(BASE_DIR + 'tsne-euclidean.json')
-    faultList = read_json_file(BASE_DIR + 'fault_list.json')['fault_list']
-    faultMark = read_json_file(BASE_DIR + 'fault_mark.json')
-    bus_index = read_json_file(BASE_DIR + 'bus_index.json')
     res = {
         'pos': pos['pos'],
-        'fault': [],
-        'bus_dis': BUS_DIS,
-        'bus_index': bus_index
+        'fault': FAULTS,
+        # 'bus_dis': BUS_DIS,
     }
-    for f in faultMark:
-        res['fault'].append(faultList[f['mark']])
     return JsonResponse(res)
-
 
 def get_birch(request):
     return validate_get_request(request, _get_birch, ['name'])
@@ -35,6 +28,26 @@ def _get_birch(request):
 def get_busData(request):
     return validate_get_request(request, _get_busData, ['sampleId', 'busId'])
 
+def _get_busData(request):
+    sampleId = 'ST_' + request.GET['sampleId']
+    busId = int(request.GET['busId'])
+    x = SAMPLE_DATA[sampleId][:]
+    bus_distance = read_json_file(BASE_DIR + '../' + sampleId + '/bus_distance.json')
+    i = bus_distance.index(busId)
+    return JsonResponse({'data': x[:,i].tolist()})
+
+def get_sampleDis(request):
+    return validate_get_request(request, _get_sampleDis, ['sampleId[]'])
+
+def _get_sampleDis(request):
+    sampleId = request.GET.getlist('sampleId[]')
+    dis = []
+    for i in sampleId:
+        tmp_dis = []
+        for j in sampleId:
+            tmp_dis.append(get_MinDis(FAULTS[int(i)], FAULTS[int(j)]))
+        dis.append(tmp_dis)
+    return JsonResponse({'dis': dis})
 
 def get_busDistance(request):
     return validate_get_request(request, _get_busDistance, ['idx', 'idy'])
@@ -48,13 +61,13 @@ def _get_busDistance(request):
            bus_a.index(bus_b[0]), bus_a.index(bus_b[1])]
     return JsonResponse({'data': res})
 
-def _get_busData(request):
+def get_corrcoef(request):
+    return validate_get_request(request, _get_busDistance, ['sampleId'])
+
+def _get_corrcoef(request):
     sampleId = 'ST_' + request.GET['sampleId']
-    busId = int(request.GET['busId'])
     x = SAMPLE_DATA[sampleId][:]
-    bus_distance = read_json_file(BASE_DIR + '../' + sampleId + '/bus_distance.json')
-    i = bus_distance.index(busId)
-    return JsonResponse({'data': x[:,i].tolist()})
+    return JsonResponse({'data': np.corrcoef(x).tolist()})
 
 def get_forceInfo(request):
     return validate_get_request(request, _get_forceInfo)

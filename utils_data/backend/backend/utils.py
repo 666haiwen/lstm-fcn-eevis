@@ -56,4 +56,21 @@ def read_json_file(filepath):
         return { 'error' : 'File not found!' }
 
 
-BUS_DIS = read_json_file(BASE_DIR + 'bus_disinfo.json')
+def get_MinDis(a, b):
+    bus_a = [BUS_INDEX[a['i']], BUS_INDEX[a['j']]]
+    bus_b = [BUS_INDEX[b['i']], BUS_INDEX[b['j']]]
+    # print(len(BUS_DIS))
+    # print(bus_a[0], bus_b[1])
+    # print(BUS_DIS[bus_a[0]][bus_b[1]])
+    # print(BUS_DIS[bus_a[1]][bus_b[0]], BUS_DIS[bus_a[1]][bus_b[1]])
+    return min(BUS_DIS[bus_a[0]][bus_b[0]], BUS_DIS[bus_a[0]][bus_b[1]], \
+        BUS_DIS[bus_a[1]][bus_b[0]], BUS_DIS[bus_a[1]][bus_b[1]])
+
+
+BUS_DIS = read_json_file(BASE_DIR + 'bus_disinfo.json')['dis']
+BUS_INDEX = read_json_file(BASE_DIR + 'bus_index.json')
+FAULTS = []
+faultList = read_json_file(BASE_DIR + 'fault_list.json')['fault_list']
+faultMark = read_json_file(BASE_DIR + 'fault_mark.json')
+for f in faultMark:
+    FAULTS.append(faultList[f['mark']])

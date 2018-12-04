@@ -40,10 +40,17 @@ def test_canopy():
     canopy, index = x.get_canopy()
 
 
-def set_dis_matrix(parameter_list):
-    pass
-
+def get_coffef():
+    X = h5py.File(gl.ORIGNIL_SAMPLE_PATH + 'data\\orignal_sample.hdf5', 'r')
+    namelist = ['ST_' + str(i) for i in range(1)]
+    for name in namelist:
+        print(name)
+        x = X[name][:]
+        y = np.corrcoef(x)
+        print(y.shape)
+        print(y)
 
 # test_distance_cost()
 
 # test_canopy()
+get_coffef()

@@ -66,7 +66,7 @@ body {
     font-family: 'Courier New', Courier, monospace;
 }
 
-#topology-div {
+.topology-div {
     position: absolute;
     left: 1257px;
     border: 2px;
@@ -80,21 +80,4 @@ body {
 
 #birch-select {
     background: #faebd73d;
-}
-
-.links-line {
-    stroke: #aaa;
-  }
-  
-.nodes-circle {
-    pointer-events: all;
-    fill: #4157f580;
-    stroke: none;
-    r: 2.5;
-  }
-
-.faultcenter {
-    stroke: #ff5722;
-    stroke-width: 1px;
-    r: 5px;
 }

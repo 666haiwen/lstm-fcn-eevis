@@ -1,12 +1,11 @@
 import React from 'react';
-import * as $ from 'jquery';
 import PropTypes from 'prop-types';
 import WaveLine from './Wavelines';
-import { connect } from 'react-redux';
 import * as d3 from 'd3';
 import * as gl from '../const';
 import * as api from '../api';
-import * as actions from '../actions';
+import '../css/topology.css';
+// import * as actions from '../actions';
 
 class Topology extends React.Component {
   constructor(props) {
@@ -18,11 +17,10 @@ class Topology extends React.Component {
       showLines: []
     };
     this.begin = false;
-    this.sampleId = [];
-    this.faults = []; 
+    this.sampleId = -1;
+    this.faults = {}; 
     this.selectSample = -1;
     api.getForceInfo().then(d => {
-      // console.log(d['data'][0][3]);
       this.begin = true;
       this.setState({
         'nodes': d['busInfo'],
@@ -34,8 +32,6 @@ class Topology extends React.Component {
 
   componentDidMount() {
     this.topologySvg = d3.select('.topology-panel');
-    this.sampleSelector = d3.select('.sample-selector');
-    this.sampleValue = () => $('.sample-selector').val();
   }
 
   drawTopology(graph) {
@@ -113,55 +109,22 @@ class Topology extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.type == 'ADD') 
-      this.addSample(nextProps);
-    else if (nextProps.type == 'DELETE')
-      this.deleteSample(nextProps);
-  }
-
-  addSample(nextProps) {
-    if (this.sampleId.includes(nextProps.newSample[0]))
-      return;
-    nextProps.newSample.forEach((v, i) => {
-      const id = Math.min(this.sampleId.length, gl.FAULT_CENTER_FILL.length);
-      this.sampleSelector.append('option')
-        .attr('value', v)
-        .style('background', gl.FAULT_CENTER_FILL[id])
-        .text('Sample-' + v);
-      this.sampleId.push(v);
-      this.faults.push(nextProps.fault[i]);
-      d3.select('#busId-' + nextProps.fault[i]['i'])
-          .attr('fill', gl.FAULT_CENTER_FILL[id])
-          .attr('class', 'faultcenter');
-      d3.select('#busId-' + nextProps.fault[i]['j'])
-          .attr('fill', gl.FAULT_CENTER_FILL[id])
-          .attr('class', 'faultcenter');
-    });
-  }
-
-  deleteSample(nextProps) {
-    if (!this.sampleId.includes(nextProps.newSample[0]))
-      return;
-
-    for (let i = 0; i < nextProps.newSample.length; i++) {
-      const v = nextProps.newSample[i];
-      const id = this.sampleId.indexOf(v);
-      d3.select('#busId-' + this.faults[id]['i'])
-          .attr('class', 'nodes-circle');
-      d3.select('#busId-' + this.faults[id]['j'])
-          .attr('class', 'nodes-circle');
-      this.faults.splice(id, 1);
-      this.sampleId.splice(id, 1);
-    }
+    const {fault} = nextProps;
+    this.topologySvg.selectAll('circle')
+        .classed('faultcenter', false);
+    d3.select('#busId-' + fault['i'])
+        .classed('faultcenter', true);
+    d3.select('#busId-' + fault['j'])
+        .classed('faultcenter', true);
   }
 
   addWaveLine(d) {
     console.log(d);
     const showLines = this.state.showLines;
 
-    api.getBusData(this.sampleValue(), d.id).then(data => {
+    api.getBusData(this.props.sampleId, d.id).then(data => {
       showLines.push({
-        sampleId: this.sampleValue(),
+        sampleId: this.props.sampleId,
         busId: d.id,
         vBase: d.vBase,
         data: data.data
@@ -200,14 +163,10 @@ class Topology extends React.Component {
   render() {
     return (
       <div>
-        <div id='topology-div'>
+        <div className='topology-div'>
           <svg className='topology-panel' width={gl.TOPO_WIDTH} height={gl.TOPO_HEIGHT}>
             {this.drawTopology(this.state)}
           </svg>
-          <select className='sample-selector'>
-            <option value="-1">Select diffierent Sample</option>
-          </select>
-          <button onClick={() => this.saveTopo()}>Save</button>
         </div>
         <div className='wavelines-div'>
           {this.state.showLines.map((d, i) => 
@@ -228,12 +187,8 @@ class Topology extends React.Component {
 }
 
 Topology.protoTypes = {
-  newSample: PropTypes.array.isRequired,
+  sampleId: PropTypes.number.isRequired,
+  fault: PropTypes.object.isRequired,
 };
-const mapStateToProps = (state) => ({
-  newSample: state.control.newSample,
-  fault: state.control.fault,
-  type: state.control.sampleType
-});
-const TopologyPanel = connect(mapStateToProps, actions)(Topology);
-export default TopologyPanel;
+// const TopologyPanel = connect(mapStateToProps, actions)(Topology);
+export default Topology;

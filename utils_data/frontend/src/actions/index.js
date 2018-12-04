@@ -3,15 +3,10 @@ export const SetBirch = (v) => ({
   birchId: v
 });
 
-export const AddSample = (id, fault) => ({
-  type: 'ADD_SAMPLE',
+export const TopoSample = (id, fault) => ({
+  type: 'TOPO_SAMPLE',
   sampleId: id,
   fault: fault
-});
-
-export const DeleteSample = (id) => ({
-  type: 'DELETE_SAMPLE',
-  sampleId: id
 });
 
 export const ShowDisMatrix = (disMatrix, sample) => ({
@@ -24,4 +19,8 @@ export const HighLightDisSample = (idx, idy) => ({
   type: 'HIGH_LIGHT_DIS',
   idx: idx,
   idy: idy
+});
+
+export const ShowNone = () => ({
+  type: 'SHOW_NONE'
 });

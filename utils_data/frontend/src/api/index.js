@@ -46,12 +46,30 @@ export const getBusData = (sampleId, busId) => {
   });
 };
 
+export const getSampleDis = (sampleId) => {
+  return getJson({
+    url: Const.HOSTNAME + 'api/sampleDis',
+    data: {
+      sampleId: sampleId,
+    }
+  });
+};
+
 export const getBusDistance = (idx, idy) => {
   return getJson({
     url: Const.HOSTNAME + 'api/busDistance',
     data: {
       idx: idx,
       idy: idy
+    }
+  });
+};
+
+export const getCorrcoef = (sampleId) => {
+  return getJson({
+    url: Const.HOSTNAME + 'api/corrcoef',
+    data: {
+      sampleId: sampleId,
     }
   });
 };

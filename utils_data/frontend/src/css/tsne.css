@@ -35,7 +35,7 @@
     /* fill: steelblue; */
 }
 
-.sample-slect {
+.sample-select {
     stroke: #ff5722;
     stroke-width: 2px;
     r: 7px;
@@ -52,6 +52,10 @@
 
 .label-hide {
     fill: #80808020;
+}
+
+.label-selected {
+    fill: #2196F3;
 }
 
 .hightLight-x {
