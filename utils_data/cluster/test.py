@@ -46,7 +46,7 @@ def get_coffef():
     for name in namelist:
         print(name)
         x = X[name][:]
-        y = np.corrcoef(x)
+        y = np.corrcoef(x, rowvar=False)
         print(y.shape)
         print(y)
 

@@ -62,12 +62,16 @@ def _get_busDistance(request):
     return JsonResponse({'data': res})
 
 def get_corrcoef(request):
-    return validate_get_request(request, _get_busDistance, ['sampleId'])
+    return validate_get_request(request, _get_corrcoef, ['sampleId'])
 
 def _get_corrcoef(request):
     sampleId = 'ST_' + request.GET['sampleId']
     x = SAMPLE_DATA[sampleId][:]
-    return JsonResponse({'data': np.corrcoef(x).tolist()})
+    res = np.corrcoef(x, rowvar=False)
+    max_v = np.max(res)
+    min_v = np.min(res)
+    bus_distance = read_json_file(BASE_DIR + '../' + sampleId + '/bus_distance.json')
+    return JsonResponse({'data': res.tolist(), 'max': max_v, 'min': min_v, 'busDistance': bus_distance})
 
 def get_forceInfo(request):
     return validate_get_request(request, _get_forceInfo)

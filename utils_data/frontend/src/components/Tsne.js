@@ -15,13 +15,9 @@ class Tsne extends React.Component {
       faults: {},
       Number: 0,
       birch: -1,
-      bus_dis: [],
-      bus_index: []
     };
     this.idx = this.idy = -1;
-    this.sampleColor = [];
-    this.sampleLabel = [];
-    this.sampleId = [];
+    this.sampleId = -1;
     api.getTsne().then(data => {
       let xScale = [data.pos[0][0], data.pos[0][0]];
       let yScale = [data.pos[0][1], data.pos[0][1]];
@@ -54,8 +50,6 @@ class Tsne extends React.Component {
       this.setState({
         faults: faults,
         Number: faults.length,
-        // bus_dis: data.bus_dis.dis,
-        // bus_index: data.bus_index
       });
     });
   }
@@ -103,7 +97,6 @@ class Tsne extends React.Component {
   }
 
   showLabel(d) {
-    console.log('!!!!!!!!!');
     if (d.class == 'label-hide') 
       return;
     this.tsne.selectAll('circle')
@@ -219,7 +212,6 @@ class Tsne extends React.Component {
   }
 
   render() {
-    console.log('render!');
     return (
       <div className='tsne-div'>
         <svg className='tsne-panel'>

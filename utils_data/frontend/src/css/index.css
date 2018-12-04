@@ -12,7 +12,7 @@ body {
     background: #fff;
     overflow: hidden;
     border-radius: 2px;
-    box-shadow: 0 1px 3px rgba(26,26,26,.1);
+    box-shadow: 0 1px 3px rgba(26,26,26,.2);
     box-sizing: border-box;
 }
 
@@ -25,7 +25,7 @@ body {
     background: #fff;
     overflow: scroll;
     border-radius: 2px;
-    box-shadow: 0 1px 3px rgba(26,26,26,.1);
+    box-shadow: 0 1px 3px rgba(26,26,26,.2);
     box-sizing: border-box;
     color: black;
     width: 1200px;
@@ -38,35 +38,8 @@ body {
     left: 20px;
 }
 
-.wavelines-div {
-    position: absolute;
-    overflow: hidden;
-    top: 980px;
-    width: 2600px;
-    height: 300px;
-}
 
-.waveline-div {
-    position: absolute;
-    border: 2px;
-    top: 10px;
-    width: 800px;
-    height: 250px;
-    margin-bottom: 10px;
-    background: #fff;
-    overflow: hidden;
-    border-radius: 2px;
-    box-shadow: 0 1px 3px rgba(26,26,26,.1);
-    box-sizing: border-box;
-}
-
-.waveline-title {
-    color: black;
-    font-size: 16px;
-    font-family: 'Courier New', Courier, monospace;
-}
-
-.topology-div {
+.topology-panel {
     position: absolute;
     left: 1257px;
     border: 2px;
@@ -74,10 +47,6 @@ body {
     background: #fff;
     overflow: hidden;
     border-radius: 2px;
-    box-shadow: 0 1px 3px rgba(26,26,26,.1);
+    box-shadow: 0 1px 3px rgba(26,26,26,.2);
     box-sizing: border-box;
-}
-
-#birch-select {
-    background: #faebd73d;
 }

@@ -14,12 +14,14 @@ class Topology extends React.Component {
       nodes: [],
       links: [],
       bus_ids: [],
-      showLines: []
+      showLines: {
+        busId: [],
+        data: [],
+        vBase: [],
+      }
     };
     this.begin = false;
     this.sampleId = -1;
-    this.faults = {}; 
-    this.selectSample = -1;
     api.getForceInfo().then(d => {
       this.begin = true;
       this.setState({
@@ -31,7 +33,7 @@ class Topology extends React.Component {
   }
 
   componentDidMount() {
-    this.topologySvg = d3.select('.topology-panel');
+    this.topologySvg = d3.select('.topology-svg');
   }
 
   drawTopology(graph) {
@@ -80,7 +82,7 @@ class Topology extends React.Component {
               node.attr('transform', d3.event.transform);
             })
     );
-
+    
     function ticked() {
       link
         .attr('x1', d => d.source.x)
@@ -110,6 +112,7 @@ class Topology extends React.Component {
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     const {fault} = nextProps;
+    this.sampleId = nextProps.sampleId;
     this.topologySvg.selectAll('circle')
         .classed('faultcenter', false);
     d3.select('#busId-' + fault['i'])
@@ -119,16 +122,20 @@ class Topology extends React.Component {
   }
 
   addWaveLine(d) {
-    console.log(d);
     const showLines = this.state.showLines;
-
+    if (showLines.busId.includes(d.id))
+      return;
+    
+    this.topologySvg.selectAll('circle')
+      .classed('topo-bus-selected', false); 
     api.getBusData(this.props.sampleId, d.id).then(data => {
-      showLines.push({
-        sampleId: this.props.sampleId,
-        busId: d.id,
-        vBase: d.vBase,
-        data: data.data
-      });
+      showLines.data.push(data.data);
+      showLines.vBase.push(d.vBase);
+      showLines.busId.push(d.id);
+      showLines.busId.forEach(id => {
+        this.topologySvg.select('#busId-' + id)
+          .classed('topo-bus-selected', true);
+    });
       this.setState({
         showLines: showLines
       });
@@ -151,7 +158,6 @@ class Topology extends React.Component {
       busId.push(d.id);
     });
     this.topologySvg.selectAll('line').each(d => {
-      console.log(d);
       res.lines.push({
         x: busId.indexOf(d.source),
         y: busId.indexOf(d.target)
@@ -161,26 +167,21 @@ class Topology extends React.Component {
   }
 
   render() {
+    const showLines = this.state.showLines;
     return (
-      <div>
-        <div className='topology-div'>
-          <svg className='topology-panel' width={gl.TOPO_WIDTH} height={gl.TOPO_HEIGHT}>
+      <div className='topology-div'>
+        <div className='topology-panel'>
+          <svg className='topology-svg' width={gl.TOPO_WIDTH} height={gl.TOPO_HEIGHT}>
             {this.drawTopology(this.state)}
           </svg>
         </div>
-        <div className='wavelines-div'>
-          {this.state.showLines.map((d, i) => 
-            <WaveLine
-              key={i}
-              number={i}
-              sampleId={d.sampleId}
-              busId={d.busId}
-              vBase={d.vBase}
-              data={d.data}
-              onClick = {(i) => {console.log(i);}}
-            />
-          )}
-        </div>
+        <WaveLine
+          sampleId={this.sampleId}
+          busId={showLines.busId}
+          vBase={showLines.vBase}
+          data={showLines.data}
+          onClick = {(i) => {console.log(i);}}
+        />
       </div>
     );
   }

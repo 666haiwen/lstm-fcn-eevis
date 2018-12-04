@@ -3,6 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import DisMatrix from './DisMatrix';
 import Topology from './Topology';
+import Corrcoef from './Corrcoef';
 import * as d3 from 'd3';
 // import * as gl from '../const';
 // import * as api from '../api';
@@ -10,8 +11,6 @@ import * as actions from '../actions';
 
 class SecondDetail extends React.Component {
   hidden() {
-    const t=d3;
-    console.log(t);
     d3.select('.topology-div').style('visibility', 'hidden');
     d3.select('.disMatrix-div').style('visibility', 'hidden');
   }
@@ -28,19 +27,17 @@ class SecondDetail extends React.Component {
   render() {
     return(
       <div>
-        <Topology sampleId={this.props.sampleId} fault={this.props.fault} type={this.props.showType}></Topology>
-        <DisMatrix disMatrix={this.props.disMatrix} sample={this.props.disSample} type={this.props.showType}
+        <Topology sampleId={this.props.sampleId} fault={this.props.fault}></Topology>
+        <DisMatrix disMatrix={this.props.disMatrix} sample={this.props.disSample}
           highLightSample={this.props.HighLightDisSample}>
         </DisMatrix>
+        <Corrcoef sampleId={this.props.sampleId} type={this.props.showType}></Corrcoef>
       </div>
     );
   }
 }
 
 
-
-SecondDetail.protoTypes = {
-};
 const mapStateToProps = (state) => ({
   showType: state.second.showType,
   disMatrix: state.second.disMatrix,

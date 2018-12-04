@@ -12,21 +12,27 @@ class WaveLine extends React.Component {
 
   componentDidMount() {
     console.log('did mount!');
-    this.drawLine(this.props.data);
+    this.svg = d3.select('.waveline-svg');
   }
-  drawLine(d) {
-    // this.svg = d3.select('#waveline-' + this.props.number)
-    //   .append('svg')
-    //     .attr('width', gl.WAVELINE_WIDTH)
-    //     .attr('height', gl.WAVELINE_HEIGHT);
-    this.svg = d3.select('#waveline-svg-' + this.props.number);
-    const data = [];
-    d.forEach((v,i) => {
-      data.push([v, i/100]);
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    this.drawLine(nextProps);
+  }
+
+  drawLine(props) {
+    this.svg.selectAll('g').remove();
+    const {busId, data} = props;
+    if (busId.length == 0) 
+      return;
+    const lineData = [];
+    data.forEach((v) => {
+      let tmp_data = [];
+      v.forEach((_v, i) => tmp_data.push([_v, i/100]));
+      lineData.push(tmp_data);
     });
-    const x = data.length / 100;
-    const max = Math.max(...d);
-    const min = Math.min(...d);
+    const x = lineData[0].length / 100;
+    const max =d3.max(data, d => Math.max(...d));
+    const min = d3.min(data, d => Math.min(...d));
     const width = gl.WAVELINE_WIDTH;
     const height = gl.WAVELINE_HEIGHT;
     const padding = {top: 0, right:20, bottom: 80, left: 50};
@@ -51,24 +57,26 @@ class WaveLine extends React.Component {
     const linePath = d3.line()
       .x(d => xScale(d[1]))
       .y(d => yScale(d[0]));
-    this.svg.append('g')
+    busId.forEach((id, i) => {
+      this.svg.append('g')
       .append('path')
         .attr('class', 'line-path')
+        .attr('id', 'line-busId-' + id)
         .attr('transform', 'translate(' + padding.left + ',' + padding.top + ')')
-        .attr('d', linePath(data))
+        .attr('d', linePath(lineData[i]))
         .attr('fill', 'none')
         .attr('stroke-width', 1)
         .attr('stroke', 'black');
-
+    });
   }
+
   render() {
-    console.log('!!!!!!', this.props);
     return(
-      <div className='waveline-div' id={'waveline-' + this.props.number} style={{left: (gl.WAVELINE_WIDTH + gl.WAVELINE_TRANS) * this.props.number }}>
+      <div className='waveline-div'>
         <div className='waveline-title'>
           <p>SampleId: {this.props.sampleId} BusId:{this.props.busId}  vBase:{this.props.vBase}</p>
         </div>
-        <svg id={'waveline-svg-' + this.props.number} width={gl.WAVELINE_WIDTH} height={gl.WAVELINE_HEIGHT}
+        <svg className='waveline-svg' width={gl.WAVELINE_WIDTH} height={gl.WAVELINE_HEIGHT}
         color='black'>
           {/* {this.drawLine(this.props.data)} */}
         </svg>
@@ -78,10 +86,9 @@ class WaveLine extends React.Component {
 }
 
 WaveLine.protoTypes = {
-  number: PropTypes.number.isRequired,
   sampleId: PropTypes.number.isRequired,
-  busId: PropTypes.number.isRequired,
-  vBase: PropTypes.number.isRequired,
+  busId: PropTypes.array.isRequired,
+  vBase: PropTypes.array.isRequired,
   data: PropTypes.array.isRequired,
 };
 

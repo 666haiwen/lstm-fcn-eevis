@@ -8,6 +8,6 @@ export const DIS_MATRIX_LENGTH = 40, DIS_MAX = 1.4902337025193395, DIS_INF = 100
 export const FAULT_CENTER_FILL = ['bisque', '#badfff', '#8bc34a', '#ffeb3b'];
 export const FAULT_CENTER_STROKE = '#ff5722';
 
-export const WAVELINE_WIDTH = 800, WAVELINE_TRANS = 7, WAVELINE_HEIGHT = 250;
+export const WAVELINE_WIDTH = 2300, WAVELINE_TRANS = 7, WAVELINE_HEIGHT = 250;
 export const DST_FILE = 'file://G:/KDD-EEVIS/original_sample/data/';
 export const HOSTNAME = window.location.origin + '/';
