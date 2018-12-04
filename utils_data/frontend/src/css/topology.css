@@ -4,6 +4,7 @@
   
 .nodes-circle {
     pointer-events: all;
+    cursor: pointer;
     fill: #4157f580;
     stroke: none;
     r: 2.5;
@@ -17,8 +18,8 @@
 }
 
 .topo-bus-selected {
-    fill: blanchedalmond;
-    opacity: 0.5;
+    fill: #f44336;
+    fill-opacity: 0.5;
     r: 5px;
 }
 

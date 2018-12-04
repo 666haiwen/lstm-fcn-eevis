@@ -35,7 +35,7 @@ class WaveLine extends React.Component {
     const min = d3.min(data, d => Math.min(...d));
     const width = gl.WAVELINE_WIDTH;
     const height = gl.WAVELINE_HEIGHT;
-    const padding = {top: 0, right:20, bottom: 80, left: 50};
+    const padding = {top: 10, right:20, bottom: 50, left: 50};
     const xScale = d3.scaleLinear()
         .domain([0, x])
         .range([0, width - padding.left - padding.right]);
@@ -58,15 +58,17 @@ class WaveLine extends React.Component {
       .x(d => xScale(d[1]))
       .y(d => yScale(d[0]));
     busId.forEach((id, i) => {
-      this.svg.append('g')
+      const g = this.svg.append('g')
       .append('path')
         .attr('class', 'line-path')
         .attr('id', 'line-busId-' + id)
         .attr('transform', 'translate(' + padding.left + ',' + padding.top + ')')
         .attr('d', linePath(lineData[i]))
         .attr('fill', 'none')
-        .attr('stroke-width', 1)
+        .attr('stroke-width', 2)
         .attr('stroke', 'black');
+      g.append('title')
+        .text(`busId: ${id}  vBase: ${props.vBase[i]}`);
     });
   }
 
@@ -74,7 +76,7 @@ class WaveLine extends React.Component {
     return(
       <div className='waveline-div'>
         <div className='waveline-title'>
-          <p>SampleId: {this.props.sampleId} BusId:{this.props.busId}  vBase:{this.props.vBase}</p>
+          <p>SampleId: {this.props.sampleId}</p>
         </div>
         <svg className='waveline-svg' width={gl.WAVELINE_WIDTH} height={gl.WAVELINE_HEIGHT}
         color='black'>

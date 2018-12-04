@@ -149,7 +149,7 @@ class Tsne extends React.Component {
         .on('click', d => this.addSample(d));
     circles.append('title')
         .text(d => 'busId: ' + d.id);
-      // Lasso functions
+    // Lasso functions
     const lasso_start = () => {
         lasso.items()
             .attr('r', gl.TSNE_R) // reset size

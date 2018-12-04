@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import WaveLine from './Wavelines';
 import * as d3 from 'd3';
+import * as d3lasso from '../d3-lasso';
 import * as gl from '../const';
 import * as api from '../api';
 import '../css/topology.css';
@@ -42,10 +43,10 @@ class Topology extends React.Component {
     this.begin = false;
     let simulation = d3.forceSimulation()
         .force('link', d3.forceLink().id(d => d.id))
-        .force('charge', d3.forceManyBody().strength(-30))
+        .force('charge', d3.forceManyBody().strength(-8))
         .force('center', d3.forceCenter(gl.TOPO_WIDTH / 2, gl.TOPO_HEIGHT / 2))
-        .force('x', d3.forceX(gl.TOPO_WIDTH / 2).strength(1))
-        .force('y', d3.forceY(gl.TOPO_HEIGHT / 2).strength(1));
+        .force('x', d3.forceX(gl.TOPO_WIDTH/2))
+        .force('y', d3.forceY(gl.TOPO_HEIGHT/2));
     let link = this.topologySvg.append('g')
         .attr('class', 'links-line')
       .selectAll('line')
@@ -56,9 +57,11 @@ class Topology extends React.Component {
       .selectAll('circle')
       .data(graph.nodes)
       .enter().append('circle')
-        .attr('r', 2.5)
+        .attr('r', 3)
         .attr('id', d => 'busId-' + d.id)
         .on('click', d => this.addWaveLine(d))
+        .on('mouseover', d => d3.select('#line-busId-' + d.id).attr('stroke', '#f44336'))
+        .on('mouseout', d => d3.select('#line-busId-' + d.id).attr('stroke', 'black'))
         .call(d3.drag()
             .on('start', dragstarted)
             .on('drag', dragged)
@@ -74,14 +77,14 @@ class Topology extends React.Component {
       // .strength(1);
     simulation.force('link', forceLink);
 
-    this.topologySvg.call(
-        d3.zoom()
-            .scaleExtent([.1, 4])
-            .on('zoom', () => { 
-              link.attr('transform', d3.event.transform); 
-              node.attr('transform', d3.event.transform);
-            })
-    );
+    // this.topologySvg.call(
+    //     d3.zoom()
+    //         .scaleExtent([.1, 4])
+    //         .on('zoom', () => { 
+    //           link.attr('transform', d3.event.transform); 
+    //           node.attr('transform', d3.event.transform);
+    //         })
+    // );
     
     function ticked() {
       link
@@ -108,6 +111,54 @@ class Topology extends React.Component {
       d.fx = null;
       d.fy = null;
     }
+
+    // Lasso functions
+    const lasso_start = () => {
+      lasso.items()
+          .attr('r', gl.TSNE_R) // reset size
+          .classed('not_possible',true)
+          .classed('selected',false);
+  };
+
+    const lasso_draw = () => {
+    
+        // Style the possible dots
+        lasso.possibleItems()
+            .classed('not_possible',false)
+            .classed('possible',true);
+
+        // Style the not possible dot
+        lasso.notPossibleItems()
+            .classed('not_possible',true)
+            .classed('possible',false);
+    };
+
+    const lasso_end = () => {
+        // Reset the color of all dots
+        lasso.items()
+            .classed('not_possible',false)
+            .classed('possible',false);
+
+        // Style the selected dots
+        lasso.selectedItems()
+            .classed('selected',true)
+            .attr('r', gl.TSNE_LASSO_R);
+
+        // Reset the style of the not selected dots
+        lasso.notSelectedItems()
+            .attr('r', gl.TSNE_R);
+    };
+    
+    const lasso = d3lasso.lasso()
+        .closePathSelect(true)
+        .closePathDistance(100)
+        .items(node)
+        .targetArea(this.topologySvg)
+        .on('start',lasso_start)
+        .on('draw',lasso_draw)
+        .on('end',lasso_end);
+    
+    this.topologySvg.call(lasso);
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -123,11 +174,19 @@ class Topology extends React.Component {
 
   addWaveLine(d) {
     const showLines = this.state.showLines;
-    if (showLines.busId.includes(d.id))
+    if (showLines.busId.includes(d.id)) {
+      this.topologySvg.select('#busId-' + d.id)
+        .classed('topo-bus-selected', false);
+      const index = showLines.busId.indexOf(d.id);
+      showLines.busId.splice(index, 1);
+      showLines.vBase.splice(index, 1);
+      showLines.data.splice(index, 1);
+      this.setState({
+        showLines: showLines
+      });
       return;
+    }
     
-    this.topologySvg.selectAll('circle')
-      .classed('topo-bus-selected', false); 
     api.getBusData(this.props.sampleId, d.id).then(data => {
       showLines.data.push(data.data);
       showLines.vBase.push(d.vBase);

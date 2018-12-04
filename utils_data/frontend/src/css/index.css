@@ -38,6 +38,9 @@ body {
     left: 20px;
 }
 
+path {
+    cursor: pointer;
+}
 
 .topology-panel {
     position: absolute;
