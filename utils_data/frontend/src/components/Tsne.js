@@ -31,8 +31,8 @@ class Tsne extends React.Component {
         if (d[1] < yScale[0])
           yScale[0] = d[1];
       });
-      let rateX = (gl.WIDTH - 10) / (xScale[1] - xScale[0]),
-          rateY = (gl.HEIGHT - 10) / (yScale[1] - yScale[0]);
+      let rateX = (gl.WIDTH - 50) / (xScale[1] - xScale[0]),
+          rateY = (gl.HEIGHT - 50) / (yScale[1] - yScale[0]);
       const faults = [];
       data.pos.forEach((d, i) => {
         faults.push({
@@ -40,8 +40,8 @@ class Tsne extends React.Component {
           'label': null,
           'class': 'label-hide',
           'pos' : {
-            'x': (d[0] - xScale[0]) * rateX + 5,
-            'y': (d[1] - yScale[0]) * rateY + 5
+            'x': (d[0] - xScale[0]) * rateX + 10,
+            'y': (d[1] - yScale[0]) * rateY + 10
           },
           'fault': data.fault[i]
         });
@@ -124,6 +124,8 @@ class Tsne extends React.Component {
         fault: this.state.faults[v.id].fault
       });
     });
+    this.tsne.select('#sample-' + this.sampleId)
+          .classed('sample-select', false);
     if (sampleIds.length == 1) {
       this.addSample(disSample[0]);
       return;
@@ -163,7 +165,7 @@ class Tsne extends React.Component {
         .text(d => 'busId: ' + d.id);
     
     const simulation = d3.forceSimulation(faults)
-      .force('collision', d3.forceCollide(gl.TSNE_R).iterations(2));
+      .force('collision', d3.forceCollide(gl.TSNE_R - 2).iterations(2));
     let counter = 0;
     function ticked(){
         counter++;

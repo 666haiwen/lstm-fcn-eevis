@@ -24,6 +24,10 @@ class Corrcoef extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
+    if (nextProps.type != 'TOPO' || nextProps.busIds.length == 0) {
+      d3.select('.corrcoef-div').selectAll('div').remove();
+      return;
+    }
     const {sampleId, busIds} = nextProps;
     if (this.notSame(sampleId, busIds)) {
       this.sampleId = sampleId;

@@ -33,3 +33,7 @@
     height: 850px;
     overflow: scroll;
 }
+
+.corrcoef-g-hidden {
+    fill-opacity: 0.1;
+}

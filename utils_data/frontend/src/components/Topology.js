@@ -24,6 +24,7 @@ class Topology extends React.Component {
     };
     this.begin = false;
     this.sampleId = -1;
+    this.busIds = [];
     api.getForceInfo().then(d => {
       this.begin = true;
       this.setState({
@@ -38,11 +39,24 @@ class Topology extends React.Component {
     this.topologySvg = d3.select('.topology-svg');
   }
 
+  mouseOver(d) {
+    d3.select('#line-busId-' + d.id).attr('stroke', '#f44336');
+    if (this.busIds.includes(d.id)) {
+      d3.select('.corrcoef-svg').selectAll('g').classed('corrcoef-g-hidden', true);
+      d3.select('.corrcoef-g-' + d.id).classed('corrcoef-g-hidden', false); 
+    }
+  }
+
+  mouseOut(d) {
+    d3.select('#line-busId-' + d.id).attr('stroke', 'black');
+    d3.select('.corrcoef-svg').selectAll('g').classed('corrcoef-g-hidden', false);
+  }
+
   drawCorrcoef(busIds) {
     const ids = [];
     busIds.each(v => ids.push(v.id));
-    if (ids.length > 0)
-      this.props.ShowCorrcoef(ids);
+    this.busIds = ids;
+    this.props.ShowCorrcoef(ids);
   }
 
   drawTopology(graph) {
@@ -68,8 +82,8 @@ class Topology extends React.Component {
         .attr('r', 3)
         .attr('id', d => 'busId-' + d.id)
         .on('click', d => this.addWaveLine(d))
-        .on('mouseover', d => d3.select('#line-busId-' + d.id).attr('stroke', '#f44336'))
-        .on('mouseout', d => d3.select('#line-busId-' + d.id).attr('stroke', 'black'))
+        .on('mouseover', d => this.mouseOver(d))
+        .on('mouseout', d => this.mouseOut(d))
         .call(d3.drag()
             .on('start', dragstarted)
             .on('drag', dragged)
