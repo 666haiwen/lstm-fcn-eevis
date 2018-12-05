@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import {select} from 'd3-selection';
+import * as d3 from 'd3';
 import '../css/tsne.css';
 import * as gl from '../const';
 import * as api from '../api';
@@ -55,14 +55,15 @@ class Tsne extends React.Component {
   }
 
   componentDidMount() {
-    this.tsne = select('.tsne-panel')
+    this.tsne = d3.select('.tsne-panel')
       .attr('width', gl.WIDTH)
       .attr('height', gl.HEIGHT);
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.birchId != this.state.birch) {
-      api.getBirch(nextProps.birchId).then(data => {
+  handleBirch(e) {
+    const v = e.target.value;
+    if (v != this.state.birch) {
+      api.getBirch(v).then(data => {
         const birch = data['labels'].sort((a,b) => b.length - a.length);
         const faults = this.state.faults;
         const label = [];
@@ -77,11 +78,14 @@ class Tsne extends React.Component {
         }
         this.setState({
           faults: faults,
-          birch: nextProps.birchId
+          birch: v
         });
         this.drawCircle(faults);
       }); 
     }
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.idx != this.idx || nextProps.idy != this.idy) {
       this.tsne.select('#sample-' + this.idx)
         .classed('hightLight-x', false);
@@ -120,6 +124,10 @@ class Tsne extends React.Component {
         fault: this.state.faults[v.id].fault
       });
     });
+    if (sampleIds.length == 1) {
+      this.addSample(disSample[0]);
+      return;
+    }
     if (sampleIds.length > 0) 
       api.getSampleDis(sampleIds).then(d => {
         this.props.ShowDisMatrix(d.dis, disSample);
@@ -134,6 +142,10 @@ class Tsne extends React.Component {
   drawCircle(faults) {
     if (!this.tsne)
       return;
+    faults.forEach((v, i) => {
+      faults[i].x = v.pos.x;
+      faults[i].y = v.pos.y;
+    });
     this.tsne.selectAll('g').remove();
     const circles = this.tsne.append('g')
         .selectAll('circle')
@@ -149,6 +161,22 @@ class Tsne extends React.Component {
         .on('click', d => this.addSample(d));
     circles.append('title')
         .text(d => 'busId: ' + d.id);
+    
+    const simulation = d3.forceSimulation(faults)
+      .force('collision', d3.forceCollide(gl.TSNE_R).iterations(2));
+    let counter = 0;
+    function ticked(){
+        counter++;
+        console.log(counter);
+        if (counter > 20) {
+          simulation.stop();
+        }
+        circles.attr('cx', d => d.x)
+            .attr('cy', d => d.y);
+      }
+     
+    simulation.on('tick',ticked);
+
     // Lasso functions
     const lasso_start = () => {
         lasso.items()
@@ -216,18 +244,28 @@ class Tsne extends React.Component {
       <div className='tsne-div'>
         <svg className='tsne-panel'>
         </svg>
+        <div className="control-div">
+          <select id='birch-select' onChange={e => this.handleBirch(e)} 
+            value={this.state.birchId}>
+            <option value="-1">Select the diffierent Birch</option>
+            <option value="500">500 Labels of Birch</option>
+            <option value="400">400 Labels of Birch</option>
+            <option value="300">300 Labels of Birch</option>
+            <option value="200">200 Labels of Birch</option>
+            <option value="100">100 Labels of Birch</option>
+            <option value="50">50 Labels of Birch</option>
+          </select>
+      </div>
       </div>
     );
   }
 }
 
 Tsne.propTypes = {
-  birchId: PropTypes.string.isRequired,
   idx: PropTypes.number.isRequired,
   idy: PropTypes.number.isRequired,
 };
 const mapStateToProps = (state) => ({
-  birchId: state.control.birchId,
   idx: state.second.idx,
   idy: state.second.idy,
 });

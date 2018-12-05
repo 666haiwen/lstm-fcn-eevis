@@ -24,3 +24,8 @@ export const HighLightDisSample = (idx, idy) => ({
 export const ShowNone = () => ({
   type: 'SHOW_NONE'
 });
+
+export const ShowCorrcoef = (busIds) => ({
+  type: 'CORRCOEF_IDS',
+  corrcoefIds: busIds
+});

@@ -65,11 +65,12 @@ export const getBusDistance = (idx, idy) => {
   });
 };
 
-export const getCorrcoef = (sampleId) => {
+export const getCorrcoef = (sampleId, busIds) => {
   return getJson({
     url: Const.HOSTNAME + 'api/corrcoef',
     data: {
       sampleId: sampleId,
+      busIds: busIds
     }
   });
 };

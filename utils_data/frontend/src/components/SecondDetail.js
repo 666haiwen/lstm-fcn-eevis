@@ -1,9 +1,8 @@
 import React from 'react';
-// import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import DisMatrix from './DisMatrix';
-import Topology from './Topology';
-// import Corrcoef from './Corrcoef';
+import TopologyPanel from './Topology';
+import CorrcoefPanel from './Corrcoef';
 import * as d3 from 'd3';
 import * as actions from '../actions';
 
@@ -25,11 +24,10 @@ class SecondDetail extends React.Component {
   render() {
     return(
       <div>
-        <Topology sampleId={this.props.sampleId} fault={this.props.fault}></Topology>
+        <TopologyPanel sampleId={this.props.sampleId} fault={this.props.fault} />
         <DisMatrix disMatrix={this.props.disMatrix} sample={this.props.disSample}
-          highLightSample={this.props.HighLightDisSample}>
-        </DisMatrix>
-        {/* <Corrcoef sampleId={this.props.sampleId} type={this.props.showType}></Corrcoef> */}
+          highLightSample={this.props.HighLightDisSample} />
+        <CorrcoefPanel sampleId={this.props.sampleId} type={this.props.showType} />
       </div>
     );
   }

@@ -62,16 +62,36 @@ def _get_busDistance(request):
     return JsonResponse({'data': res})
 
 def get_corrcoef(request):
-    return validate_get_request(request, _get_corrcoef, ['sampleId'])
+    return validate_get_request(request, _get_corrcoef, ['sampleId', 'busIds[]'])
 
 def _get_corrcoef(request):
     sampleId = 'ST_' + request.GET['sampleId']
     x = SAMPLE_DATA[sampleId][:]
-    res = np.corrcoef(x, rowvar=False)
+    bus_distance = read_json_file(BASE_DIR + '../' + sampleId + '/bus_distance.json')
+    # # get fixed busIds
+    # bus_id = BUS_VBASE.copy()
+    # if bus_distance[0] not in bus_id:
+    #     bus_id.append(bus_distance[0])
+    # if bus_distance[1] not in bus_id:
+    #     bus_id.append(bus_distance[1])
+    
+    # input busIds
+    busIds = request.GET.getlist('busIds[]')
+    bus_id = [int(v) for v in busIds]
+    bus_id = sorted(bus_id)
+    vaild_x = np.zeros((x.shape[0], len(bus_id)))
+    for i, v in enumerate(bus_id):
+        vaild_x[:, i] = x[:, bus_distance.index(v)]
+    res = np.corrcoef(vaild_x, rowvar=False)
     max_v = np.max(res)
     min_v = np.min(res)
-    bus_distance = read_json_file(BASE_DIR + '../' + sampleId + '/bus_distance.json')
-    return JsonResponse({'data': res.tolist(), 'max': max_v, 'min': min_v, 'busDistance': bus_distance})
+    return JsonResponse({
+        'data': res.tolist(),
+        'max': max_v,
+        'min': min_v,
+        'busDistance': bus_distance,
+        'vaild_bus': bus_id
+    })
 
 def get_forceInfo(request):
     return validate_get_request(request, _get_forceInfo)

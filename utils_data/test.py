@@ -82,6 +82,16 @@ def test_hdf5():
     print('time of sample is {}'.format(time2-time1))
 
 
+def testBusVBase():
+    path = gl.ORIGNIL_SAMPLE_PATH
+    bus = get_json_file(path + 'ST_1\\', 'bus_distance.json')
+    busInfo = get_json_file(path + 'data\\', 'bus_info.json')
+    res = []
+    for i in bus:
+        if busInfo[i - 1]['vBase'] > 100:
+            res.append(i)
+    # print(sorted(res))
+    print(len(res))
 
 # test_eff()
 # test_sm()
@@ -90,3 +100,4 @@ def test_hdf5():
 # test_tf_gpu_cpu()
 # test_hdf5()
 # test_tf()
+testBusVBase()

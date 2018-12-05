@@ -32,7 +32,7 @@ class DisMatrix extends React.Component {
     api.getBusDistance(idx, idy).then(d => {
       const data = d.data;
       const tooltip = 
-      <div className='dis-tooltip' style={{left: x - 1257, top:y - 10}}>
+      <div className='dis-tooltip' style={{left: x - 867, top:y - 10}}>
         <p>f1 in S2: {' ' + data[0]}</p>
         <p>f2 in S2: {' ' + data[1]}</p>
         <p>f1 in S1: {' ' + data[2]}</p>

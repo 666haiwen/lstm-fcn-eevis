@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import WaveLine from './Wavelines';
+import { connect } from 'react-redux';
 import * as d3 from 'd3';
 import * as d3lasso from '../d3-lasso';
 import * as gl from '../const';
 import * as api from '../api';
 import '../css/topology.css';
-// import * as actions from '../actions';
+import * as actions from '../actions';
 
 class Topology extends React.Component {
   constructor(props) {
@@ -35,6 +36,13 @@ class Topology extends React.Component {
 
   componentDidMount() {
     this.topologySvg = d3.select('.topology-svg');
+  }
+
+  drawCorrcoef(busIds) {
+    const ids = [];
+    busIds.each(v => ids.push(v.id));
+    if (ids.length > 0)
+      this.props.ShowCorrcoef(ids);
   }
 
   drawTopology(graph) {
@@ -147,6 +155,8 @@ class Topology extends React.Component {
         // Reset the style of the not selected dots
         lasso.notSelectedItems()
             .attr('r', gl.TSNE_R);
+        
+        this.drawCorrcoef(lasso.selectedItems());
     };
     
     const lasso = d3lasso.lasso()
@@ -200,30 +210,6 @@ class Topology extends React.Component {
       });
     });
   }
-  // getFau
-  saveTopo() {
-    const res = {
-      circle: [],
-      lines: []
-    };
-    const busId = [];
-    this.topologySvg.selectAll('circle').each(d => {
-      res.circle.push({
-        id: d.id,
-        rx: d.rx,
-        ry: d.ry,
-        vBase: d.vBase
-      });
-      busId.push(d.id);
-    });
-    this.topologySvg.selectAll('line').each(d => {
-      res.lines.push({
-        x: busId.indexOf(d.source),
-        y: busId.indexOf(d.target)
-      });
-    });
-    
-  }
 
   render() {
     const showLines = this.state.showLines;
@@ -239,7 +225,6 @@ class Topology extends React.Component {
           busId={showLines.busId}
           vBase={showLines.vBase}
           data={showLines.data}
-          onClick = {(i) => {console.log(i);}}
         />
       </div>
     );
@@ -250,5 +235,5 @@ Topology.protoTypes = {
   sampleId: PropTypes.number.isRequired,
   fault: PropTypes.object.isRequired,
 };
-// const TopologyPanel = connect(mapStateToProps, actions)(Topology);
-export default Topology;
+const TopologyPanel = connect(null, actions)(Topology);
+export default TopologyPanel;

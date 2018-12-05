@@ -6,24 +6,20 @@ import * as gl from '../const';
 // import * as actions from '../actions';
 
 class WaveLine extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentDidMount() {
-    console.log('did mount!');
-    this.svg = d3.select('.waveline-svg');
-  }
-
   UNSAFE_componentWillReceiveProps(nextProps) {
+    this.svg = d3.select('.waveline-div').selectAll('svg').remove();
+    if (nextProps.busId.length == 0)
+      return;
+    this.svg = d3.select('.waveline-div').append('svg')
+        .attr('class', 'waveline-svg')
+        .attr('width', gl.WAVELINE_WIDTH)
+        .attr('height', gl.WAVELINE_HEIGHT)
+        .attr('color', 'black');
     this.drawLine(nextProps);
   }
 
   drawLine(props) {
-    this.svg.selectAll('g').remove();
     const {busId, data} = props;
-    if (busId.length == 0) 
-      return;
     const lineData = [];
     data.forEach((v) => {
       let tmp_data = [];
@@ -43,6 +39,7 @@ class WaveLine extends React.Component {
         .domain([min, max])
         .range([height - padding.top - padding.bottom, 0]);
     const xAxis = d3.axisBottom()
+              .ticks(40)
               .scale(xScale);
     const yAxis = d3.axisLeft()
               .scale(yScale);
@@ -78,10 +75,6 @@ class WaveLine extends React.Component {
         <div className='waveline-title'>
           <p>SampleId: {this.props.sampleId}</p>
         </div>
-        <svg className='waveline-svg' width={gl.WAVELINE_WIDTH} height={gl.WAVELINE_HEIGHT}
-        color='black'>
-          {/* {this.drawLine(this.props.data)} */}
-        </svg>
       </div>
     );
   }
