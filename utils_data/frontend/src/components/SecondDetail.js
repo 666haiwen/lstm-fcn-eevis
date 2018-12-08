@@ -8,7 +8,6 @@ import * as actions from '../actions';
 
 class SecondDetail extends React.Component {
   hidden() {
-    d3.select('.topology-div').style('visibility', 'hidden');
     d3.select('.disMatrix-div').style('visibility', 'hidden');
   }
   componentDidMount() {

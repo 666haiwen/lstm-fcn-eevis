@@ -233,6 +233,9 @@ class Topology extends React.Component {
           <svg className='topology-svg' width={gl.TOPO_WIDTH} height={gl.TOPO_HEIGHT}>
             {this.drawTopology(this.state)}
           </svg>
+          <label>
+            <input></input>
+          </label>
         </div>
         <WaveLine
           sampleId={this.sampleId}
