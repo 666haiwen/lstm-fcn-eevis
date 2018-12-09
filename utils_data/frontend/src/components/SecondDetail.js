@@ -21,12 +21,16 @@ class SecondDetail extends React.Component {
       d3.select('.disMatrix-div').style('visibility', 'visible');
   }
   render() {
+    let corrcoef = <div></div>;
+    if (this.props.showType == 'TOPO' || this.props.type == 'TOPO-SAMPLE') {
+      corrcoef = <CorrcoefPanel sampleId={this.props.sampleId} type={this.props.showType} />;
+    }
     return(
       <div>
-        <TopologyPanel sampleId={this.props.sampleId} fault={this.props.fault} />
+        <TopologyPanel sampleId={this.props.sampleId} fault={this.props.fault} type={this.props.type}/>
         <DisMatrix disMatrix={this.props.disMatrix} sample={this.props.disSample}
           highLightSample={this.props.HighLightDisSample} />
-        <CorrcoefPanel sampleId={this.props.sampleId} type={this.props.showType} />
+        {corrcoef}
       </div>
     );
   }
@@ -38,7 +42,8 @@ const mapStateToProps = (state) => ({
   disMatrix: state.second.disMatrix,
   disSample: state.second.disSample,
   sampleId: state.second.topoSample,
-  fault: state.second.fault
+  fault: state.second.fault,
+  type: state.control.type
 });
 const SecondDetailContainer = connect(mapStateToProps, actions)(SecondDetail);
 export default SecondDetailContainer;

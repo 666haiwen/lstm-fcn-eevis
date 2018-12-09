@@ -26,6 +26,7 @@ api_urlpatterns = [
     path('busDistance', api.get_busDistance),
     path('corrcoef', api.get_corrcoef),
     path('sampleDis', api.get_sampleDis),
+    path('busField', api.get_field),
 ]
 
 urlpatterns = [

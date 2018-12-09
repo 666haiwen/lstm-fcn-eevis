@@ -1,3 +1,8 @@
+export const ChangeType = (v) => ({
+  type: 'CHANGE-SAMPLE-TOPO',
+  v: v
+});
+
 export const SetBirch = (v) => ({
   type: 'SET_BIRCH',
   birchId: v

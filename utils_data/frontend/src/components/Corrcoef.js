@@ -7,24 +7,28 @@ import * as d3 from 'd3';
 class Corrcoef extends React.Component {
   constructor(props) {
     super(props);
-    this.sampleId = -1;
+    this.sampleId = [];
     this.busIds = [];
   }
 
   notSame(sampleId, busIds) {
     if (busIds.length == 0)
       return false;
-    if (this.sampleId != sampleId || busIds.length != this.busIds.length)
+    if (this.sampleId.length != sampleId.length || busIds.length != this.busIds.length)
       return true;
     busIds.forEach(v => {
       if (!this.busIds.includes(v))
+        return true;
+    });
+    sampleId.forEach(v => {
+      if (!this.sampleId.includes(v))
         return true;
     });
     return false;
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.type != 'TOPO' || nextProps.busIds.length == 0) {
+    if (nextProps.busIds.length == 0 || nextProps.sampleId.length == 0) {
       d3.select('.corrcoef-div').selectAll('div').remove();
       return;
     }
@@ -32,25 +36,46 @@ class Corrcoef extends React.Component {
     if (this.notSame(sampleId, busIds)) {
       this.sampleId = sampleId;
       this.busIds = busIds;
-      api.getCorrcoef(sampleId, busIds).then(data =>{
-        this.showCorrcoef(data);
-      }); 
+      d3.select('.corrcoef-div').selectAll('div').remove();
+      const panel = d3.select('.corrcoef-div').append('div')
+          .attr('class', 'corrcoef-panel');
+      this.svg = panel.append('svg')
+          .attr('class', 'corrcoef-svg')
+          .attr('transform', 'translate(0, 25)');
+      const length = Math.sqrt(sampleId.length) | 0;
+      sampleId.forEach((v, i) => {
+        api.getCorrcoef(v, busIds).then(data =>{
+          this.showCorrcoef(data, v, i, length);
+        }); 
+      });
     }
   }
 
-  showCorrcoef(d) {
+  showCorrcoef(d, sampleId, index, length) {
     const {data, /*max, min,*/ vaild_bus} = d;
-    d3.select('.corrcoef-div').selectAll('div').remove();
-    const panel = d3.select('.corrcoef-div').append('div')
-        .attr('class', 'corrcoef-panel');
-    const svg = panel.append('svg')
-        .attr('class', 'corrcoef-svg')
-        .attr('transform', 'translate(25, 5)');
     const color = d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]);
+    const row = (index / length) | 0;
+    const col = index % length;
+    const g_size = vaild_bus.length * 12 + 30;
+    const sample_g = this.svg.append('g')
+      .attr('class', 'corrcoef-g-sample-' + sampleId)
+      .attr('transform', `translate(${row * g_size}, ${col * g_size})`)
+      .on('mouseover', ()=>{
+        d3.select('#sample-' + sampleId)
+            .classed('hightLight-x', true);
+      })
+      .on('mouseout', ()=>{
+        d3.select('#sample-' + sampleId)
+            .classed('hightLight-x', false);
+      });
+    sample_g.append('text')
+      .text('Sample-' + sampleId)
+      .attr('x', 5)
+      .attr('y', 20);
     vaild_bus.forEach((busId, i) => {
-      const g = svg.append('g')
+      const g = sample_g.append('g')
         .attr('class', 'corrcoef-g-' + busId)
-        .attr('transform', `translate(0, ${i * 12})`);
+        .attr('transform', `translate(0, ${30 + i * 12})`);
       g.selectAll('rect')
         .data(data[i]).enter()
         .append('rect')
@@ -60,24 +85,24 @@ class Corrcoef extends React.Component {
             .attr('x', (d,_i)=> _i * 12)
             .attr('y', 0);
     });
-    const svgDefs = svg.append('defs');
-    const colorGradient = svgDefs.append('linearGradient')
-      .attr('id', 'colorGradient');
-    colorGradient.append('stop')
-        .attr('offset', '0')
-        .style('stop-color', color(-1));
-    colorGradient.append('stop')
-        .attr('offset', '1')
-        .style('stop-color', color(1));
-    colorGradient.append('stop')
-        .attr('offset', '0.5')
-        .style('stop-color', color(0));
-    svg.append('rect')    
-        .style('fill', 'url(#colorGradient)')
-        .attr('x', 600)
-        .attr('y', 600)
-        .attr('width', 200)
-        .attr('height', 20);
+    // const svgDefs = svg.append('defs');
+    // const colorGradient = svgDefs.append('linearGradient')
+    //   .attr('id', 'colorGradient');
+    // colorGradient.append('stop')
+    //     .attr('offset', '0')
+    //     .style('stop-color', color(-1));
+    // colorGradient.append('stop')
+    //     .attr('offset', '1')
+    //     .style('stop-color', color(1));
+    // colorGradient.append('stop')
+    //     .attr('offset', '0.5')
+    //     .style('stop-color', color(0));
+    // svg.append('rect')    
+    //     .style('fill', 'url(#colorGradient)')
+    //     .attr('x', 600)
+    //     .attr('y', 600)
+    //     .attr('width', 200)
+    //     .attr('height', 20);
 
   }
 
@@ -87,7 +112,7 @@ class Corrcoef extends React.Component {
 }
 
 Corrcoef.protoTypes = {
-  sampleId: PropTypes.number.isRequired,
+  sampleId: PropTypes.array.isRequired,
   busIds: PropTypes.array.isRequired,
 };
 const mapStateToProps = (state) => ({

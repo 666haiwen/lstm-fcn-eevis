@@ -1,7 +1,9 @@
 export const WIDTH = 850, HEIGHT = 1150, TRANSLATE_X = 50, TRANSLATE_Y = 50,
              LABEL_THREHOLD = 3, HIGHL_LIGHT_COLOR= '#2196F3';
 export const TSNE_R = 5, TSNE_LASSO_R = 7;
-export const TOPO_WIDTH = 850, TOPO_HEIGHT = 850;
+
+export const TOPO_WIDTH = 850, TOPO_HEIGHT = 800;
+export const ORDERCLASS= ['first-order', 'second-order', 'third-order'];
 export const SHOW_COLOR = '#1a1a1a1a', HIDEN_COLOR = '#80808060', NO_LABEL_COLOR = '#80808010';
 
 export const DIS_MATRIX_LENGTH = 40, DIS_MAX = 1.4902337025193395, DIS_INF = 100000;

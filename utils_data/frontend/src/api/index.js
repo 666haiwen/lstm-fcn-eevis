@@ -46,6 +46,16 @@ export const getBusData = (sampleId, busId) => {
   });
 };
 
+export const getBusField = (sampleId, field) => {
+  return getJson({
+    url: Const.HOSTNAME + 'api/busField',
+    data: {
+      sampleId: sampleId,
+      field: field
+    }
+  });
+};
+
 export const getSampleDis = (sampleId) => {
   return getJson({
     url: Const.HOSTNAME + 'api/sampleDis',

@@ -46,9 +46,11 @@ path {
     position: absolute;
     left: 867px;
     height: 857px;
+    width: 850px;
     border: 2px;
     margin-bottom: 10px;
     background: #fff;
+    color: black;
     overflow: hidden;
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(26,26,26,.2);
@@ -79,7 +81,7 @@ path {
     height: 857px;
     margin-bottom: 10px;
     background: #fff;
-    overflow: hidden;
+    overflow: scroll;
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(26,26,26,.2);
     box-sizing: border-box;

@@ -5,7 +5,7 @@ const second = (
     disSample: [],
     idx: -1,
     idy: -1,
-    topoSample: -1,
+    topoSample: [],
     fault: {i:-1, j:-1},
     corrcoefIds: [],
   }, action) => {

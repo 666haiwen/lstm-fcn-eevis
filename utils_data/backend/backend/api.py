@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 from django.http import *
 import numpy as np
 from .utils import *
@@ -26,15 +27,54 @@ def _get_birch(request):
     return JsonResponse(read_json_file(BASE_DIR + 'birch/' + name))
 
 def get_busData(request):
-    return validate_get_request(request, _get_busData, ['sampleId', 'busId'])
+    return validate_get_request(request, _get_busData, ['sampleId[]', 'busId'])
 
 def _get_busData(request):
-    sampleId = 'ST_' + request.GET['sampleId']
+    sampleId = 'ST_' + request.GET.getlist('sampleId[]')[0]
     busId = int(request.GET['busId'])
     x = SAMPLE_DATA[sampleId][:]
     bus_distance = read_json_file(BASE_DIR + '../' + sampleId + '/bus_distance.json')
     i = bus_distance.index(busId)
     return JsonResponse({'data': x[:,i].tolist()})
+
+def get_field(request):
+    return validate_get_request(request, _get_field, ['sampleId[]', 'field'])
+
+def _get_field(request):
+    sampleId = int(request.GET.getlist('sampleId[]')[0])
+    field = int(request.GET['field'])
+    fault = FAULTS[sampleId]
+    p = [fault['i'], fault['j']]
+    visited = [False for i in range(map_size)]
+    visited[p[0]] = visited[p[1]] = True
+    for i in range(field + 1):
+        q = []
+        for j in range(map_size):
+            if visited[j]:
+                continue
+            for v in p:
+                if v != j and edge_map[v][j] < 1000:
+                    q.append(j)
+                    break
+        for v in p:
+            visited[v] = True
+        p = q.copy()
+    p = []
+    for v in q:
+        if BUS_INDEX[v] != -1:
+            p.append(v)
+    res = {
+        'busId': p,
+        'vBase': [],
+        'data': [],
+    }
+    x = SAMPLE_DATA['ST_' + str(sampleId)][:]
+    bus_distance = read_json_file(BASE_DIR + '../ST_' + str(sampleId) + '/bus_distance.json')
+    for v in p:
+        i = bus_distance.index(v)
+        res['data'].append(x[:, i].tolist())
+        res['vBase'].append(bus_info[v - 1]['vBase'])
+    return JsonResponse(res)
 
 def get_sampleDis(request):
     return validate_get_request(request, _get_sampleDis, ['sampleId[]'])

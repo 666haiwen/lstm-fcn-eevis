@@ -3,10 +3,10 @@ const control = (
     type: 'SAMPLE-TOPO'
   }, action) => {
     switch (action.type) {
-      case 'TOPO-SAMPLE':
+      case 'CHANGE-SAMPLE-TOPO':
         return {
           ...state,
-          type: action.type
+          type: action.v
         };
       default:
         return state;

@@ -17,7 +17,7 @@ class Tsne extends React.Component {
       birch: -1,
     };
     this.idx = this.idy = -1;
-    this.sampleId = -1;
+    this.sampleId = [];
     api.getTsne().then(data => {
       let xScale = [data.pos[0][0], data.pos[0][0]];
       let yScale = [data.pos[0][1], data.pos[0][1]];
@@ -114,6 +114,20 @@ class Tsne extends React.Component {
         .classed('label-selected', true);
   }
 
+  sampleSelected(d) {
+    if (this.props.type == 'SAMPLE-TOPO') {
+      this.showDisMatrix(d);
+    }
+    else {
+      const samples = [];
+      d.each(v => {
+        samples.push(v.id);
+      });
+      this.sampleId = samples;
+      this.props.TopoSample(this.sampleId, {});
+    }
+  }
+
   showDisMatrix(samples) {
     const sampleIds = [];
     const disSample = [];
@@ -138,6 +152,35 @@ class Tsne extends React.Component {
       this.tsne.select('#sample-' + this.sampleId)
           .classed('sample-select', false);
       this.props.ShowNone();      
+    }
+  }
+
+  addSample(d) {
+    if (this.props.control == 'TOPO-SAMPLE') {
+      if (this.sampleId.includes(d.id)) {
+        const index = this.sampleId.index(d.id);
+        this.sampleId.splice(index, 1);
+      }
+      else
+        this.sampleId.push(d.id);
+      this.props.TopoSample(this.sampleId, {});
+    }
+    else
+    {
+      if (this.sampleId.length == 0) {
+        this.tsne.select('#sample-' + d.id)
+          .classed('sample-select', true);
+        this.sampleId = [d.id];
+        this.props.TopoSample(this.sampleId, d.fault);
+      }
+      if (this.sampleId[0] != d.id) {
+        this.tsne.select('#sample-' + this.sampleId)
+            .classed('sample-select', false);
+        this.tsne.select('#sample-' + d.id)
+            .classed('sample-select', true);
+        this.sampleId[0] = d.id;
+        this.props.TopoSample(this.sampleId, d.fault);
+      }
     }
   }
 
@@ -169,7 +212,6 @@ class Tsne extends React.Component {
     let counter = 0;
     function ticked(){
         counter++;
-        console.log(counter);
         if (counter > 20) {
           simulation.stop();
         }
@@ -215,7 +257,7 @@ class Tsne extends React.Component {
         lasso.notSelectedItems()
             .attr('r', gl.TSNE_R);
 
-        this.showDisMatrix(lasso.selectedItems());
+        this.sampleSelected(lasso.selectedItems());
     };
     
     const lasso = d3lasso.lasso()
@@ -228,17 +270,6 @@ class Tsne extends React.Component {
         .on('end',lasso_end);
     
     this.tsne.call(lasso);
-  }
-
-  addSample(d) {
-    if (this.sampleId != d.id) {
-      this.tsne.select('#sample-' + this.sampleId)
-          .classed('sample-select', false);
-      this.tsne.select('#sample-' + d.id)
-          .classed('sample-select', true);
-      this.sampleId = d.id;
-      this.props.TopoSample(d.id, d.fault);
-    }
   }
 
   render() {
@@ -270,6 +301,7 @@ Tsne.propTypes = {
 const mapStateToProps = (state) => ({
   idx: state.second.idx,
   idy: state.second.idy,
+  type: state.control.type,
 });
 const TsnePanel = connect(mapStateToProps, actions)(Tsne);
 export default TsnePanel;

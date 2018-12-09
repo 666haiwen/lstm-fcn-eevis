@@ -22,6 +22,38 @@
     fill-opacity: 0.5;
 }
 
+.first-order-path {
+    stroke: #009688;
+    stroke-opacity: 0.65;
+}
+
+.first-order-node {
+    fill: #009688;
+}
+
+.second-order-path {
+    stroke: #2e9d32;
+    stroke-opacity: 0.65;
+}
+
+.second-order-node {
+    fill: #2e9d32;
+}
+
+.third-order-path {
+    stroke: #9ccc65;
+    stroke-opacity: 0.65;
+}
+
+.third-order-node {
+    fill: #9ccc65;
+}
+
+.high-light-path {
+    stroke: #f44336;
+    stroke-opacity: 1.0;
+}
+
 .waveline-title {
     color: black;
     font-size: 16px;
@@ -29,8 +61,8 @@
 }
 
 .corrcoef-svg {
-    width: 850px;
-    height: 850px;
+    width: 1750px;
+    height: 1750px;
     overflow: scroll;
 }
 

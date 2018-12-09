@@ -16,6 +16,12 @@ class WaveLine extends React.Component {
         .attr('height', gl.WAVELINE_HEIGHT)
         .attr('color', 'black');
     this.drawLine(nextProps);
+    for (let i = 0; i < 3; i++) {
+      nextProps.order[i].forEach(v=>{
+        this.svg.select('#line-busId-' + v)
+            .classed(gl.ORDERCLASS[i] + '-path', true);
+      });
+    }
   }
 
   drawLine(props) {
@@ -85,6 +91,7 @@ WaveLine.protoTypes = {
   busId: PropTypes.array.isRequired,
   vBase: PropTypes.array.isRequired,
   data: PropTypes.array.isRequired,
+  order: PropTypes.array.isRequired,
 };
 
 export default WaveLine;

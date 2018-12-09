@@ -20,10 +20,12 @@ class Topology extends React.Component {
         busId: [],
         data: [],
         vBase: [],
-      }
+      },
+      order: [[],[],[]],
+      type: 'SAMPLE-TOPO'
     };
     this.begin = false;
-    this.sampleId = -1;
+    this.sampleId = [];
     this.busIds = [];
     api.getForceInfo().then(d => {
       this.begin = true;
@@ -37,18 +39,25 @@ class Topology extends React.Component {
 
   componentDidMount() {
     this.topologySvg = d3.select('.topology-svg');
+    this.checkbox = d3.select('#select-sample-checkbox');
+    this.filed = [
+      d3.select('#first-field-checkbox'),
+      d3.select('#second-field-checkbox'),
+      d3.select('#third-field-checkbox'),
+    ];
   }
 
   mouseOver(d) {
-    d3.select('#line-busId-' + d.id).attr('stroke', '#f44336');
+    d3.select('#line-busId-' + d.id).classed('high-light-path', true);
     if (this.busIds.includes(d.id)) {
-      d3.select('.corrcoef-svg').selectAll('g').classed('corrcoef-g-hidden', true);
-      d3.select('.corrcoef-g-' + d.id).classed('corrcoef-g-hidden', false); 
+      d3.select('.corrcoef-svg').selectAll('g').selectAll('g').classed('corrcoef-g-hidden', true);
+      d3.select('.corrcoef-svg').selectAll('.corrcoef-g-' + d.id).classed('corrcoef-g-hidden', false); 
+      console.log(d3.select('.corrcoef-svg').selectAll('.corrcoef-g-' + d.id));
     }
   }
 
   mouseOut(d) {
-    d3.select('#line-busId-' + d.id).attr('stroke', 'black');
+    d3.select('#line-busId-' + d.id).classed('high-light-path', false);
     d3.select('.corrcoef-svg').selectAll('g').classed('corrcoef-g-hidden', false);
   }
 
@@ -197,6 +206,9 @@ class Topology extends React.Component {
   }
 
   addWaveLine(d) {
+    if (this.state.type == 'TOPO-SAMPLE') {
+      return;
+    }
     const showLines = this.state.showLines;
     if (showLines.busId.includes(d.id)) {
       this.topologySvg.select('#busId-' + d.id)
@@ -225,8 +237,84 @@ class Topology extends React.Component {
     });
   }
 
+  selectingSample() {
+    if (this.checkbox.node().checked) {
+      this.setState({
+        type: 'TOPO-SAMPLE'
+      });
+      this.props.ChangeType('TOPO-SAMPLE');
+    }
+    else {
+      this.setState({
+        type: 'SAMPLE-TOPO'
+      });
+      this.props.ChangeType('SAMPLE-TOPO');
+    }
+  }
+
+  orderFiled(id) {
+    const showLines = this.state.showLines;
+    const order = this.state.order;
+    if (this.state.type == 'TOPO-SAMPLE' || this.sampleId.length == 0) {
+      for (let i = 0; i < 3; i++) {
+        this.topologySvg.selectAll('circle')
+        .classed(gl.ORDERCLASS[i] + '-node', false);
+        order[i].forEach(v => {
+          this.topologySvg.select('#busId-' + v)
+            .classed(gl.ORDERCLASS[id] + '-node', true);
+        });
+      }
+      return;      
+    }
+    if (this.filed[id].node().checked) {
+      api.getBusField(this.sampleId, id).then(data => {
+        data.busId.forEach((v, i)=> {
+          if (!showLines.busId.includes(v)) {
+            showLines.data.push(data.data[i]);
+            showLines.busId.push(v);
+            showLines.vBase.push(data.vBase[i]);
+          }
+          this.topologySvg.select('#busId-' + v)
+            // .classed('topo-bus-selected', true)
+            .classed(gl.ORDERCLASS[id] + '-node', true);
+        });
+        order[id] = data.busId;
+        this.setState({
+          order: order,
+          showLines: showLines
+        });
+      });
+    }
+    else {
+      order[id].forEach(v => {
+        this.topologySvg.select('#busId-' + v)
+            // .classed('topo-bus-selected', false)
+            .classed(gl.ORDERCLASS[id], false);
+        const index = showLines.busId.indexOf(v);
+        showLines.busId.splice(index, 1);
+        showLines.vBase.splice(index, 1);
+        showLines.data.splice(index, 1);
+      });
+      order[id] = [];
+      this.setState({
+        order: order,
+        showLines: showLines
+      });
+    }
+  }
+
   render() {
     const showLines = this.state.showLines;
+    let waveLines = <div></div>;
+    if (this.sampleId.length == 1 && this.state.type == 'SAMPLE-TOPO') {
+      waveLines = <WaveLine
+                    sampleId={this.sampleId[0]}
+                    busId={showLines.busId}
+                    vBase={showLines.vBase}
+                    data={showLines.data}
+                    order={this.state.order}
+                  />;
+    }
     return (
       <div className='topology-div'>
         <div className='topology-panel'>
@@ -234,23 +322,26 @@ class Topology extends React.Component {
             {this.drawTopology(this.state)}
           </svg>
           <label>
-            <input></input>
+            <input id='select-sample-checkbox' type='checkbox' onChange={() => this.selectingSample()} />
+              <span>Enable Selecting Samples</span>
+            <input id='first-field-checkbox' type='checkbox' onChange={() => this.orderFiled(0)} />
+              <span>First-order field</span>
+            <input id='second-field-checkbox' type='checkbox' onChange={() => this.orderFiled(1)} />
+              <span>Second-order field</span>
+            <input id='third-field-checkbox' type='checkbox' onChange={() => this.orderFiled(2)} />
+              <span>Third-order field</span>
           </label>
         </div>
-        <WaveLine
-          sampleId={this.sampleId}
-          busId={showLines.busId}
-          vBase={showLines.vBase}
-          data={showLines.data}
-        />
+        {waveLines}
       </div>
     );
   }
 }
 
 Topology.protoTypes = {
-  sampleId: PropTypes.number.isRequired,
+  sampleId: PropTypes.array.isRequired,
   fault: PropTypes.object.isRequired,
+  // tpye: PropTypes.string.isRequired
 };
 const TopologyPanel = connect(null, actions)(Topology);
 export default TopologyPanel;

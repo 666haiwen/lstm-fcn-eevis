@@ -1,6 +1,7 @@
 import os
 import json
 import h5py
+import sys
 import numpy as np
 from django.http import HttpResponseNotAllowed, HttpResponseBadRequest
 
@@ -66,6 +67,17 @@ def get_MinDis(a, b):
     return min(BUS_DIS[bus_a[0]][bus_b[0]], BUS_DIS[bus_a[0]][bus_b[1]], \
         BUS_DIS[bus_a[1]][bus_b[0]], BUS_DIS[bus_a[1]][bus_b[1]])
 
+# create edge map by edge list
+def _create_map(edge_list, map_size):
+    edge_map = [[sys.float_info.max / 3 for x in range(map_size)] for y in range(map_size)]
+    for edge in edge_list:
+        # maybe multi lines between i and j ,we accpet min of them
+        if edge['dis'] < edge_map[edge['i']][edge['j']]:
+            edge_map[edge['i']][edge['j']] = edge_map[edge['j']][edge['i']] = edge['dis']
+    for x in range(1, map_size):
+        edge_map[x][x] = 0
+    return edge_map
+
 
 BUS_DIS = read_json_file(BASE_DIR + 'bus_disinfo.json')['dis']
 BUS_INDEX = read_json_file(BASE_DIR + 'bus_index.json')
@@ -75,3 +87,7 @@ faultMark = read_json_file(BASE_DIR + 'fault_mark.json')
 for f in faultMark:
     FAULTS.append(faultList[f['mark']])
 BUS_VBASE = [24, 38, 51, 71, 79, 113, 114, 115, 116, 117, 156, 161, 180, 213, 220, 227, 243, 262, 273, 315, 333, 354, 364, 383, 427, 441, 460, 465, 481, 487, 498, 518, 524, 547, 560, 575, 601, 608, 629, 646, 653, 675, 692, 696, 702, 719, 731, 742, 749, 759, 858, 859, 871, 878, 886, 912, 917, 928, 929, 936, 944, 965, 978, 1199, 1221, 1237, 1241, 1246, 1264, 1279, 1283, 1288, 1354, 1358, 1363, 1367, 1946, 1987, 1999, 2044, 2389, 2424, 5012, 5047, 5061, 5122, 5123, 5126, 5159, 5227, 5228, 5229, 5230, 5275, 5278, 5337, 5338]
+edges = read_json_file(BASE_DIR + 'edge_info.json')
+bus_info = read_json_file(BASE_DIR + 'bus_info.json')
+map_size = 6958 + 1
+edge_map = _create_map(edges, map_size)
