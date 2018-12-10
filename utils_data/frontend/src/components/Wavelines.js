@@ -16,10 +16,11 @@ class WaveLine extends React.Component {
         .attr('height', gl.WAVELINE_HEIGHT)
         .attr('color', 'black');
     this.drawLine(nextProps);
-    for (let i = 0; i < 3; i++) {
+    const length = nextProps.order.length;
+    for (let i = 0; i < length; i++) {
       nextProps.order[i].forEach(v=>{
         this.svg.select('#line-busId-' + v)
-            .classed(gl.ORDERCLASS[i] + '-path', true);
+            .attr('stroke', gl.FIELD_COLOR(gl.FIELD_LINEAR(i)));
       });
     }
   }

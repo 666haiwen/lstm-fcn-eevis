@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-// import { connect } from 'react-redux';
+import { connect } from 'react-redux';
 import * as d3 from 'd3';
 import * as gl from '../const';
 import '../css/disMatrix.css';
 import * as api from '../api';
-// import * as actions from '../actions';
+import * as actions from '../actions';
 
 class DisMatrix extends React.Component {
   constructor(props) {
@@ -14,6 +14,10 @@ class DisMatrix extends React.Component {
       tooltip: <div className='dis-tooltip' hidden></div>
     };
     this.color = d3.scaleSequential(d3.interpolateBlues).domain([0, gl.DIS_MAX]);
+  }
+
+  clickSample(sampleId) {
+    this.props.DisMatrixSample(sampleId);
   }
 
   highLight(idx, idy) {
@@ -32,7 +36,7 @@ class DisMatrix extends React.Component {
     api.getBusDistance(idx, idy).then(d => {
       const data = d.data;
       const tooltip = 
-      <div className='dis-tooltip' style={{left: x - 867, top:y - 10}}>
+      <div className='dis-tooltip' style={{left: x - 1767, top:y - 10}}>
         <p>f1 in S2: {' ' + data[0]}</p>
         <p>f2 in S2: {' ' + data[1]}</p>
         <p>f1 in S1: {' ' + data[2]}</p>
@@ -106,8 +110,10 @@ class DisMatrix extends React.Component {
     const rowList = [];
     const colList = [];
     sample.forEach((v, i) => {
-      rowList.push(<p key={i} className='dis-box' id={'dis-box-row-' + v.id} style={{left: i * gl.DIS_MATRIX_LENGTH}}>{v.id}</p>);
-      colList.push(<p key={i} className='dis-box' id={'dis-box-col-' + v.id}style={{top: i * gl.DIS_MATRIX_LENGTH}}>{v.id}</p>);
+      rowList.push(<p key={i} className='dis-box' id={'dis-box-row-' + v.id} style={{left: i * gl.DIS_MATRIX_LENGTH}}
+      onClick={()=>{this.clickSample(v.id);}}>{v.id}</p>);
+      colList.push(<p key={i} className='dis-box' id={'dis-box-col-' + v.id} style={{top: i * gl.DIS_MATRIX_LENGTH}}
+      onClick={()=>{this.clickSample(v.id);}}>{v.id}</p>);
     });
     return (
       <div className='disMatrix-div'>
@@ -131,4 +137,5 @@ DisMatrix.protoTypes = {
   sample: PropTypes.array.isRequired,
   highLightSample: PropTypes.func.isRequired,
 };
-export default DisMatrix;
+const DisMatrixPanel = connect(null, actions)(DisMatrix);
+export default DisMatrixPanel;

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import WaveLine from './Wavelines';
+import Corrcoef from './Corrcoef';
 import { connect } from 'react-redux';
 import * as d3 from 'd3';
 import * as d3lasso from '../d3-lasso';
@@ -16,17 +17,19 @@ class Topology extends React.Component {
       nodes: [],
       links: [],
       bus_ids: [],
+      busIds: [],//selected busIds
       showLines: {
         busId: [],
         data: [],
         vBase: [],
       },
-      order: [[],[],[]],
+      order: [],
+      disOrder: -1,
       type: 'SAMPLE-TOPO'
     };
     this.begin = false;
+    this.selectedIds = [];
     this.sampleId = [];
-    this.busIds = [];
     api.getForceInfo().then(d => {
       this.begin = true;
       this.setState({
@@ -44,15 +47,16 @@ class Topology extends React.Component {
       d3.select('#first-field-checkbox'),
       d3.select('#second-field-checkbox'),
       d3.select('#third-field-checkbox'),
+      d3.select('#fourth-field-checkbox'),
+      d3.select('#fifth-field-checkbox'),
     ];
   }
 
   mouseOver(d) {
     d3.select('#line-busId-' + d.id).classed('high-light-path', true);
-    if (this.busIds.includes(d.id)) {
+    if (this.state.busIds.includes(d.id)) {
       d3.select('.corrcoef-svg').selectAll('g').selectAll('g').classed('corrcoef-g-hidden', true);
       d3.select('.corrcoef-svg').selectAll('.corrcoef-g-' + d.id).classed('corrcoef-g-hidden', false); 
-      console.log(d3.select('.corrcoef-svg').selectAll('.corrcoef-g-' + d.id));
     }
   }
 
@@ -61,11 +65,23 @@ class Topology extends React.Component {
     d3.select('.corrcoef-svg').selectAll('g').classed('corrcoef-g-hidden', false);
   }
 
-  drawCorrcoef(busIds) {
+  drawCorrcoef(selected) {
     const ids = [];
-    busIds.each(v => ids.push(v.id));
-    this.busIds = ids;
-    this.props.ShowCorrcoef(ids);
+    const busIds = this.state.busIds;
+    this.selectedIds.forEach(v => {
+      const index = busIds.indexOf(v);
+      busIds.splice(index, 1);
+    });
+    selected.each(v => {
+      ids.push(v.id);
+      if (!busIds.includes(v.id)) {
+        busIds.push(v.id);
+      }
+    });
+    this.selectedIds = ids;
+    this.setState({
+      busIds: busIds
+    });
   }
 
   drawTopology(graph) {
@@ -203,6 +219,14 @@ class Topology extends React.Component {
         .classed('faultcenter', true);
     d3.select('#busId-' + fault['j'])
         .classed('faultcenter', true);
+    this.setState({
+      // busIds: [],
+      showLines: {
+        busId: [],
+        data: [],
+        vBase: [],
+      },
+    });
   }
 
   addWaveLine(d) {
@@ -252,55 +276,91 @@ class Topology extends React.Component {
     }
   }
 
-  orderFiled(id) {
+  getFieldData(id) {
     const showLines = this.state.showLines;
-    const order = this.state.order;
-    if (this.state.type == 'TOPO-SAMPLE' || this.sampleId.length == 0) {
-      for (let i = 0; i < 3; i++) {
-        this.topologySvg.selectAll('circle')
-        .classed(gl.ORDERCLASS[i] + '-node', false);
-        order[i].forEach(v => {
-          this.topologySvg.select('#busId-' + v)
-            .classed(gl.ORDERCLASS[id] + '-node', true);
-        });
-      }
-      return;      
-    }
-    if (this.filed[id].node().checked) {
-      api.getBusField(this.sampleId, id).then(data => {
-        data.busId.forEach((v, i)=> {
-          if (!showLines.busId.includes(v)) {
-            showLines.data.push(data.data[i]);
-            showLines.busId.push(v);
-            showLines.vBase.push(data.vBase[i]);
-          }
-          this.topologySvg.select('#busId-' + v)
-            // .classed('topo-bus-selected', true)
-            .classed(gl.ORDERCLASS[id] + '-node', true);
-        });
-        order[id] = data.busId;
-        this.setState({
-          order: order,
-          showLines: showLines
-        });
-      });
-    }
-    else {
-      order[id].forEach(v => {
+    // clean
+    for (let i = 0; i <= this.state.disOrder; i++) {
+      this.state.order[i].forEach(v => {
         this.topologySvg.select('#busId-' + v)
             // .classed('topo-bus-selected', false)
-            .classed(gl.ORDERCLASS[id], false);
+            .attr('fill', '#4157f580');
+            // .classed(gl.ORDERCLASS[id] + '-node', false);
         const index = showLines.busId.indexOf(v);
+        const i = this.state.busIds.indexOf(v);
         showLines.busId.splice(index, 1);
         showLines.vBase.splice(index, 1);
         showLines.data.splice(index, 1);
-      });
-      order[id] = [];
-      this.setState({
-        order: order,
-        showLines: showLines
+        this.state.busIds.splice(i, 1);
       });
     }
+    // re-get value
+    api.getBusField(this.sampleId, id).then(data => {
+      data.busId.forEach((v, i)=> {
+        if (!showLines.busId.includes(v)) {
+          showLines.data.push(data.data[i]);
+          showLines.busId.push(v);
+          showLines.vBase.push(data.vBase[i]);
+        }
+        if (!this.state.busIds.includes(v)) {
+          this.state.busIds.push(v);
+        }
+      });
+      for (let _i = 0; _i < data.field.length; _i++) {
+        data.field[_i].forEach(v => {
+          this.topologySvg.select('#busId-' + v)
+            .attr('fill', gl.FIELD_COLOR(gl.FIELD_LINEAR(_i)));
+        });
+      }
+      this.setState({
+        order: data.field,
+        showLines: showLines,
+        disOrder: data.field.length - 1
+      });
+    });
+  }
+
+  // orderFiled(id) {
+  //   const showLines = this.state.showLines;
+  //   const order = this.state.order;
+  //   if (this.state.type == 'TOPO-SAMPLE' || this.sampleId.length == 0) {
+  //     for (let i = 0; i < 3; i++) {
+  //       this.topologySvg.selectAll('circle')
+  //       .classed(gl.ORDERCLASS[i] + '-node', false);
+  //       order[i].forEach(v => {
+  //         this.topologySvg.select('#busId-' + v)
+  //           .classed(gl.ORDERCLASS[id] + '-node', true);
+  //       });
+  //     }
+  //     return;      
+  //   }
+  //   if (this.filed[id].node().checked) {
+  //     this.getFieldData(id);
+  //   }
+  //   else {
+  //     order[id].forEach(v => {
+  //       this.topologySvg.select('#busId-' + v)
+  //           .classed('topo-bus-selected', false)
+  //           .classed(gl.ORDERCLASS[id] + '-node', false);
+  //       const index = showLines.busId.indexOf(v);
+  //       const i = this.state.busIds.indexOf(v);
+  //       showLines.busId.splice(index, 1);
+  //       showLines.vBase.splice(index, 1);
+  //       showLines.data.splice(index, 1);
+  //       this.state.busIds.splice(i, 1);
+  //     });
+  //     order[id] = [];
+  //     this.setState({
+  //       order: order,
+  //       showLines: showLines
+  //     });
+  //   }
+  // }
+
+  orderChange(v) {
+    const disOrder = this.state.disOrder + v;
+    if (disOrder < 0 || disOrder > 10)
+      return;
+    this.getFieldData(disOrder);
   }
 
   render() {
@@ -315,6 +375,8 @@ class Topology extends React.Component {
                     order={this.state.order}
                   />;
     }
+    const corrcoef = <Corrcoef sampleId={this.props.sampleId} busIds={this.state.busIds} />;      
+
     return (
       <div className='topology-div'>
         <div className='topology-panel'>
@@ -324,15 +386,27 @@ class Topology extends React.Component {
           <label>
             <input id='select-sample-checkbox' type='checkbox' onChange={() => this.selectingSample()} />
               <span>Enable Selecting Samples</span>
+          </label>
+          {/* <label>
             <input id='first-field-checkbox' type='checkbox' onChange={() => this.orderFiled(0)} />
               <span>First-order field</span>
+          </label>
+          <label>
             <input id='second-field-checkbox' type='checkbox' onChange={() => this.orderFiled(1)} />
               <span>Second-order field</span>
-            <input id='third-field-checkbox' type='checkbox' onChange={() => this.orderFiled(2)} />
-              <span>Third-order field</span>
           </label>
+          <label>
+            <input id='third-field-checkbox' type='checkbox' onChange={() => this.orderFiled(2)} />
+              <span>Third-order</span>
+          </label> */}
+          <div>
+            <p>The order distance: {this.state.disOrder}</p>
+            <button className='up-btn' onClick={()=>this.orderChange(1)}>up</button>
+            <button className='down-btn' onClick={()=>this.orderChange(-1)}>down</button>
+          </div>
         </div>
         {waveLines}
+        {corrcoef}
       </div>
     );
   }
@@ -341,7 +415,6 @@ class Topology extends React.Component {
 Topology.protoTypes = {
   sampleId: PropTypes.array.isRequired,
   fault: PropTypes.object.isRequired,
-  // tpye: PropTypes.string.isRequired
 };
 const TopologyPanel = connect(null, actions)(Topology);
 export default TopologyPanel;

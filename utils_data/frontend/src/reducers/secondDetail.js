@@ -7,8 +7,8 @@ const second = (
     idy: -1,
     topoSample: [],
     fault: {i:-1, j:-1},
-    corrcoefIds: [],
   }, action) => {
+    let sampleIds;
     switch (action.type) {
       case 'SHOW_NONE':
         return {
@@ -16,11 +16,16 @@ const second = (
           showType: 'None'
         };
       case 'SHOW_DIS_MATRIX':
+      sampleIds = [];
+      action.sample.forEach(v => {
+        sampleIds.push(v.id);
+      });
         return {
           ...state,
           showType: 'DIS_MATRIX',
           disMatrix: action.disMatrix,
           disSample: action.sample,
+          topoSample: sampleIds,
         };
       case 'HIGH_LIGHT_DIS':
         return {
@@ -35,10 +40,10 @@ const second = (
           topoSample: action.sampleId,
           fault: action.fault
         };
-      case 'CORRCOEF_IDS':
+      case 'DIS_MATRIX_SAMPLE':
         return {
           ...state,
-          corrcoefIds: action.corrcoefIds
+          showType: 'TOPO'
         };
       default:
         return state;

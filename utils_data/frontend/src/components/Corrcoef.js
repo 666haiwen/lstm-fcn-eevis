@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
+// import { connect } from 'react-redux';
 import * as api from '../api';
 import * as d3 from 'd3';
 
@@ -34,8 +34,8 @@ class Corrcoef extends React.Component {
     }
     const {sampleId, busIds} = nextProps;
     if (this.notSame(sampleId, busIds)) {
-      this.sampleId = sampleId;
-      this.busIds = busIds;
+      this.sampleId = sampleId.concat();
+      this.busIds = busIds.concat();
       d3.select('.corrcoef-div').selectAll('div').remove();
       const panel = d3.select('.corrcoef-div').append('div')
           .attr('class', 'corrcoef-panel');
@@ -56,7 +56,7 @@ class Corrcoef extends React.Component {
     const color = d3.scaleSequential(d3.interpolateRdBu).domain([-1, 1]);
     const row = (index / length) | 0;
     const col = index % length;
-    const g_size = vaild_bus.length * 12 + 30;
+    const g_size = Math.max(vaild_bus.length * 12 + 30, 100);
     const sample_g = this.svg.append('g')
       .attr('class', 'corrcoef-g-sample-' + sampleId)
       .attr('transform', `translate(${row * g_size}, ${col * g_size})`)
@@ -115,9 +115,9 @@ Corrcoef.protoTypes = {
   sampleId: PropTypes.array.isRequired,
   busIds: PropTypes.array.isRequired,
 };
-const mapStateToProps = (state) => ({
-  busIds: state.second.corrcoefIds,
-});
-const CorrcoefPanel = connect(mapStateToProps)(Corrcoef);
+// const mapStateToProps = (state) => ({
+//   busIds: state.second.corrcoefIds,
+// });
+// const CorrcoefPanel = connect(mapStateToProps)(Corrcoef);
 
-export default CorrcoefPanel;
+export default Corrcoef;

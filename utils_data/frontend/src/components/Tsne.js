@@ -18,6 +18,7 @@ class Tsne extends React.Component {
     };
     this.idx = this.idy = -1;
     this.sampleId = [];
+    this.topoSample = -1;
     api.getTsne().then(data => {
       let xScale = [data.pos[0][0], data.pos[0][0]];
       let yScale = [data.pos[0][1], data.pos[0][1]];
@@ -98,6 +99,11 @@ class Tsne extends React.Component {
       this.tsne.select('#sample-' + this.idy)
         .classed('hightLight-y', true);
     }
+    if (nextProps.sampleId != -1 && nextProps.sampleId != this.topoSample) {
+      let d;
+      d3.select('#sample-' + nextProps.sampleId).each(v => d=v);
+      this.addSample(d);
+    }
   }
 
   showLabel(d) {
@@ -115,17 +121,18 @@ class Tsne extends React.Component {
   }
 
   sampleSelected(d) {
-    if (this.props.type == 'SAMPLE-TOPO') {
-      this.showDisMatrix(d);
-    }
-    else {
-      const samples = [];
-      d.each(v => {
-        samples.push(v.id);
-      });
-      this.sampleId = samples;
-      this.props.TopoSample(this.sampleId, {});
-    }
+    const samples = [];
+    d.each(v => {
+      samples.push(v.id);
+    });
+    this.sampleId = samples;
+    this.showDisMatrix(d);
+    // if (this.props.type == 'SAMPLE-TOPO') {
+    //   this.showDisMatrix(d);
+    // }
+    // else {
+    //   this.props.TopoSample(this.sampleId, {});
+    // }
   }
 
   showDisMatrix(samples) {
@@ -138,8 +145,10 @@ class Tsne extends React.Component {
         fault: this.state.faults[v.id].fault
       });
     });
-    this.tsne.select('#sample-' + this.sampleId)
-          .classed('sample-select', false);
+    this.sampleId.forEach(id => 
+      this.tsne.select('#sample-' + id)
+          .classed('sample-select', false)
+    );
     if (sampleIds.length == 1) {
       this.addSample(disSample[0]);
       return;
@@ -149,14 +158,12 @@ class Tsne extends React.Component {
         this.props.ShowDisMatrix(d.dis, disSample);
       });
     else {
-      this.tsne.select('#sample-' + this.sampleId)
-          .classed('sample-select', false);
       this.props.ShowNone();      
     }
   }
 
   addSample(d) {
-    if (this.props.control == 'TOPO-SAMPLE') {
+    if (this.props.type == 'TOPO-SAMPLE') {
       if (this.sampleId.includes(d.id)) {
         const index = this.sampleId.index(d.id);
         this.sampleId.splice(index, 1);
@@ -167,20 +174,20 @@ class Tsne extends React.Component {
     }
     else
     {
-      if (this.sampleId.length == 0) {
-        this.tsne.select('#sample-' + d.id)
-          .classed('sample-select', true);
-        this.sampleId = [d.id];
-        this.props.TopoSample(this.sampleId, d.fault);
-      }
-      if (this.sampleId[0] != d.id) {
-        this.tsne.select('#sample-' + this.sampleId)
+      this.tsne.selectAll('circle')
             .classed('sample-select', false);
+      // if (this.sampleId.length == 0) {
+      //   this.tsne.select('#sample-' + d.id)
+      //     .classed('sample-select', true);
+      //   this.sampleId = [d.id];
+      //   this.props.TopoSample(this.sampleId, d.fault);
+      // }
+      // if (this.sampleId[0] != d.id) {
         this.tsne.select('#sample-' + d.id)
             .classed('sample-select', true);
-        this.sampleId[0] = d.id;
-        this.props.TopoSample(this.sampleId, d.fault);
-      }
+        this.topoSample = d.id;
+        this.props.TopoSample([d.id], d.fault);
+      // }
     }
   }
 
@@ -205,7 +212,7 @@ class Tsne extends React.Component {
         .on('dblclick', d => this.showLabel(d))
         .on('click', d => this.addSample(d));
     circles.append('title')
-        .text(d => 'busId: ' + d.id);
+        .text(d => 'SampleId: ' + d.id + ' faults: ' + d.fault.i + ' ; ' + d.fault.j);
     
     const simulation = d3.forceSimulation(faults)
       .force('collision', d3.forceCollide(gl.TSNE_R - 2).iterations(2));
@@ -302,6 +309,7 @@ const mapStateToProps = (state) => ({
   idx: state.second.idx,
   idy: state.second.idy,
   type: state.control.type,
+  sampleId: state.control.sampleId,
 });
 const TsnePanel = connect(mapStateToProps, actions)(Tsne);
 export default TsnePanel;

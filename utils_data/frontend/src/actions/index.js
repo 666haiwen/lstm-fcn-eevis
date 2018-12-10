@@ -30,7 +30,7 @@ export const ShowNone = () => ({
   type: 'SHOW_NONE'
 });
 
-export const ShowCorrcoef = (busIds) => ({
-  type: 'CORRCOEF_IDS',
-  corrcoefIds: busIds
+export const DisMatrixSample = (sampleId) => ({
+  type: 'DIS_MATRIX_SAMPLE',
+  sampleId: sampleId
 });

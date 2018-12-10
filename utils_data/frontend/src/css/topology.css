@@ -54,6 +54,18 @@
     stroke-opacity: 1.0;
 }
 
+.up-btn {
+    position: absolute;
+    bottom: 0px;
+    left: 180px;
+}
+
+
+.down-btn {
+    position: absolute;
+    bottom: 0px;
+    left: 220px;
+}
 .waveline-title {
     color: black;
     font-size: 16px;
@@ -61,8 +73,8 @@
 }
 
 .corrcoef-svg {
-    width: 1750px;
-    height: 1750px;
+    width: 2550px;
+    height: 2550px;
     overflow: scroll;
 }
 

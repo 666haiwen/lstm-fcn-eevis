@@ -2,7 +2,6 @@ import React from 'react';
 import { connect } from 'react-redux';
 import DisMatrix from './DisMatrix';
 import TopologyPanel from './Topology';
-import CorrcoefPanel from './Corrcoef';
 import * as d3 from 'd3';
 import * as actions from '../actions';
 
@@ -17,20 +16,15 @@ class SecondDetail extends React.Component {
     this.hidden();
     if (this.props.showType == 'TOPO')
       d3.select('.topology-div').style('visibility', 'visible');
-    if (this.props.showType == 'DIS_MATRIX')
+    if (this.props.showType == 'DIS_MATRIX' && this.props.type == 'SAMPLE-TOPO')
       d3.select('.disMatrix-div').style('visibility', 'visible');
   }
   render() {
-    let corrcoef = <div></div>;
-    if (this.props.showType == 'TOPO' || this.props.type == 'TOPO-SAMPLE') {
-      corrcoef = <CorrcoefPanel sampleId={this.props.sampleId} type={this.props.showType} />;
-    }
     return(
       <div>
         <TopologyPanel sampleId={this.props.sampleId} fault={this.props.fault} type={this.props.type}/>
         <DisMatrix disMatrix={this.props.disMatrix} sample={this.props.disSample}
           highLightSample={this.props.HighLightDisSample} />
-        {corrcoef}
       </div>
     );
   }

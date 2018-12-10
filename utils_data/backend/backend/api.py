@@ -47,10 +47,18 @@ def _get_field(request):
     p = [fault['i'], fault['j']]
     visited = [False for i in range(map_size)]
     visited[p[0]] = visited[p[1]] = True
-    for i in range(field + 1):
+    res = {
+        'busId': [],
+        'vBase': [],
+        'data': [],
+        'field': []
+    }
+    res['field'].append(p.copy())
+    bus_distance = read_json_file(BASE_DIR + '../ST_' + str(sampleId) + '/bus_distance.json')
+    for i in range(field):
         q = []
         for j in range(map_size):
-            if visited[j]:
+            if visited[j] or j not in bus_distance:
                 continue
             for v in p:
                 if v != j and edge_map[v][j] < 1000:
@@ -59,21 +67,18 @@ def _get_field(request):
         for v in p:
             visited[v] = True
         p = q.copy()
-    p = []
-    for v in q:
-        if BUS_INDEX[v] != -1:
-            p.append(v)
-    res = {
-        'busId': p,
-        'vBase': [],
-        'data': [],
-    }
+        res['field'].append(p.copy())
+    # p = []
+    # for v in q:
+    #     if BUS_INDEX[v] != -1:
+    #         p.append(v)
     x = SAMPLE_DATA['ST_' + str(sampleId)][:]
-    bus_distance = read_json_file(BASE_DIR + '../ST_' + str(sampleId) + '/bus_distance.json')
-    for v in p:
-        i = bus_distance.index(v)
-        res['data'].append(x[:, i].tolist())
-        res['vBase'].append(bus_info[v - 1]['vBase'])
+    for p in res['field']:
+        for v in p:
+            i = bus_distance.index(v)
+            res['busId'].append(v)
+            res['data'].append(x[:, i].tolist())
+            res['vBase'].append(bus_info[v - 1]['vBase'])
     return JsonResponse(res)
 
 def get_sampleDis(request):
