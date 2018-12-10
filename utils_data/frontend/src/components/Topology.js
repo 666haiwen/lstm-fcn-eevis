@@ -319,43 +319,6 @@ class Topology extends React.Component {
     });
   }
 
-  // orderFiled(id) {
-  //   const showLines = this.state.showLines;
-  //   const order = this.state.order;
-  //   if (this.state.type == 'TOPO-SAMPLE' || this.sampleId.length == 0) {
-  //     for (let i = 0; i < 3; i++) {
-  //       this.topologySvg.selectAll('circle')
-  //       .classed(gl.ORDERCLASS[i] + '-node', false);
-  //       order[i].forEach(v => {
-  //         this.topologySvg.select('#busId-' + v)
-  //           .classed(gl.ORDERCLASS[id] + '-node', true);
-  //       });
-  //     }
-  //     return;      
-  //   }
-  //   if (this.filed[id].node().checked) {
-  //     this.getFieldData(id);
-  //   }
-  //   else {
-  //     order[id].forEach(v => {
-  //       this.topologySvg.select('#busId-' + v)
-  //           .classed('topo-bus-selected', false)
-  //           .classed(gl.ORDERCLASS[id] + '-node', false);
-  //       const index = showLines.busId.indexOf(v);
-  //       const i = this.state.busIds.indexOf(v);
-  //       showLines.busId.splice(index, 1);
-  //       showLines.vBase.splice(index, 1);
-  //       showLines.data.splice(index, 1);
-  //       this.state.busIds.splice(i, 1);
-  //     });
-  //     order[id] = [];
-  //     this.setState({
-  //       order: order,
-  //       showLines: showLines
-  //     });
-  //   }
-  // }
-
   orderChange(v) {
     const disOrder = this.state.disOrder + v;
     if (disOrder < 0 || disOrder > 10)
@@ -387,18 +350,6 @@ class Topology extends React.Component {
             <input id='select-sample-checkbox' type='checkbox' onChange={() => this.selectingSample()} />
               <span>Enable Selecting Samples</span>
           </label>
-          {/* <label>
-            <input id='first-field-checkbox' type='checkbox' onChange={() => this.orderFiled(0)} />
-              <span>First-order field</span>
-          </label>
-          <label>
-            <input id='second-field-checkbox' type='checkbox' onChange={() => this.orderFiled(1)} />
-              <span>Second-order field</span>
-          </label>
-          <label>
-            <input id='third-field-checkbox' type='checkbox' onChange={() => this.orderFiled(2)} />
-              <span>Third-order</span>
-          </label> */}
           <div>
             <p>The order distance: {this.state.disOrder}</p>
             <button className='up-btn' onClick={()=>this.orderChange(1)}>up</button>
