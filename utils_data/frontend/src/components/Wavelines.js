@@ -7,7 +7,8 @@ import * as gl from '../const';
 
 class WaveLine extends React.Component {
   UNSAFE_componentWillReceiveProps(nextProps) {
-    this.svg = d3.select('.waveline-div').selectAll('svg').remove();
+    this.svg = d3.select('.waveline-div').selectAll('svg');
+    this.svg.remove();
     if (nextProps.busId.length == 0)
       return;
     this.svg = d3.select('.waveline-div').append('svg')

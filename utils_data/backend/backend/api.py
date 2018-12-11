@@ -53,7 +53,8 @@ def _get_field(request):
         'data': [],
         'field': []
     }
-    res['field'].append(p.copy())
+    if field >= 0:
+        res['field'].append(p.copy())
     bus_distance = read_json_file(BASE_DIR + '../ST_' + str(sampleId) + '/bus_distance.json')
     for i in range(field):
         q = []
@@ -68,10 +69,6 @@ def _get_field(request):
             visited[v] = True
         p = q.copy()
         res['field'].append(p.copy())
-    # p = []
-    # for v in q:
-    #     if BUS_INDEX[v] != -1:
-    #         p.append(v)
     x = SAMPLE_DATA['ST_' + str(sampleId)][:]
     for p in res['field']:
         for v in p:

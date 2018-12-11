@@ -22,33 +22,6 @@
     fill-opacity: 0.5;
 }
 
-.first-order-path {
-    stroke: #009688;
-    stroke-opacity: 0.65;
-}
-
-.first-order-node {
-    fill: #009688;
-}
-
-.second-order-path {
-    stroke: #2e9d32;
-    stroke-opacity: 0.65;
-}
-
-.second-order-node {
-    fill: #2e9d32;
-}
-
-.third-order-path {
-    stroke: #9ccc65;
-    stroke-opacity: 0.65;
-}
-
-.third-order-node {
-    fill: #9ccc65;
-}
-
 .high-light-path {
     stroke: #f44336;
     stroke-opacity: 1.0;
@@ -60,12 +33,18 @@
     left: 180px;
 }
 
-
 .down-btn {
     position: absolute;
     bottom: 0px;
     left: 220px;
 }
+
+.clean-btn {
+    position: absolute;
+    bottom: 0px;
+    left: 280px;
+}
+
 .waveline-title {
     color: black;
     font-size: 16px;

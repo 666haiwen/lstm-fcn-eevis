@@ -164,13 +164,14 @@ class Tsne extends React.Component {
 
   addSample(d) {
     if (this.props.type == 'TOPO-SAMPLE') {
-      if (this.sampleId.includes(d.id)) {
-        const index = this.sampleId.index(d.id);
-        this.sampleId.splice(index, 1);
-      }
-      else
-        this.sampleId.push(d.id);
-      this.props.TopoSample(this.sampleId, {});
+      // console.log(this.sampleId, d.id);
+      // if (this.sampleId.includes(d.id)) {
+      //   const index = this.sampleId.indexOf(d.id);
+      //   this.sampleId.splice(index, 1);
+      // }
+      // else
+      //   this.sampleId.push(d.id);
+      // this.props.TopoSample(this.sampleId, {});
     }
     else
     {

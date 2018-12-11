@@ -85,25 +85,6 @@ class Corrcoef extends React.Component {
             .attr('x', (d,_i)=> _i * 12)
             .attr('y', 0);
     });
-    // const svgDefs = svg.append('defs');
-    // const colorGradient = svgDefs.append('linearGradient')
-    //   .attr('id', 'colorGradient');
-    // colorGradient.append('stop')
-    //     .attr('offset', '0')
-    //     .style('stop-color', color(-1));
-    // colorGradient.append('stop')
-    //     .attr('offset', '1')
-    //     .style('stop-color', color(1));
-    // colorGradient.append('stop')
-    //     .attr('offset', '0.5')
-    //     .style('stop-color', color(0));
-    // svg.append('rect')    
-    //     .style('fill', 'url(#colorGradient)')
-    //     .attr('x', 600)
-    //     .attr('y', 600)
-    //     .attr('width', 200)
-    //     .attr('height', 20);
-
   }
 
   render() {

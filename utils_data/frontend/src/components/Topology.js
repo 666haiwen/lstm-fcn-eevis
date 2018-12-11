@@ -124,14 +124,6 @@ class Topology extends React.Component {
       // .strength(1);
     simulation.force('link', forceLink);
 
-    // this.topologySvg.call(
-    //     d3.zoom()
-    //         .scaleExtent([.1, 4])
-    //         .on('zoom', () => { 
-    //           link.attr('transform', d3.event.transform); 
-    //           node.attr('transform', d3.event.transform);
-    //         })
-    // );
     
     function ticked() {
       link
@@ -220,7 +212,6 @@ class Topology extends React.Component {
     d3.select('#busId-' + fault['j'])
         .classed('faultcenter', true);
     this.setState({
-      // busIds: [],
       showLines: {
         busId: [],
         data: [],
@@ -282,7 +273,6 @@ class Topology extends React.Component {
     for (let i = 0; i <= this.state.disOrder; i++) {
       this.state.order[i].forEach(v => {
         this.topologySvg.select('#busId-' + v)
-            // .classed('topo-bus-selected', false)
             .attr('fill', '#4157f580');
             // .classed(gl.ORDERCLASS[id] + '-node', false);
         const index = showLines.busId.indexOf(v);
@@ -320,8 +310,14 @@ class Topology extends React.Component {
   }
 
   orderChange(v) {
+    if (v == -100) {
+      this.topologySvg.selectAll('circle')
+            .classed('topo-bus-selected', false);
+      this.getFieldData(-1);
+      return;
+    }
     const disOrder = this.state.disOrder + v;
-    if (disOrder < 0 || disOrder > 10)
+    if (disOrder < -1 || disOrder > 10)
       return;
     this.getFieldData(disOrder);
   }
@@ -354,6 +350,7 @@ class Topology extends React.Component {
             <p>The order distance: {this.state.disOrder}</p>
             <button className='up-btn' onClick={()=>this.orderChange(1)}>up</button>
             <button className='down-btn' onClick={()=>this.orderChange(-1)}>down</button>
+            <button className='clean-btn' onClick={()=>this.orderChange(-100)}>clean</button>
           </div>
         </div>
         {waveLines}
