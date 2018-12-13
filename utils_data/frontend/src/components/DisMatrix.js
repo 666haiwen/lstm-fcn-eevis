@@ -21,8 +21,8 @@ class DisMatrix extends React.Component {
   }
 
   highLight(idx, idy) {
-    const x = d3.event.pageX;
-    const y = d3.event.pageY;
+    const x = d3.event.layerX;
+    const y = d3.event.layerY;
     d3.select('.dis-row').selectAll('.dis-box')
         .classed('hightLight-y', false);
     d3.select('.dis-col').selectAll('.dis-box')
@@ -44,7 +44,7 @@ class DisMatrix extends React.Component {
     api.getBusDistance(idx, idy).then(d => {
       const data = d.data;
       const tooltip = 
-      <div className='dis-tooltip' style={{left: x - 1767, top:y - 10}}>
+      <div className='dis-tooltip' style={{left: x, top: y}}>
         <p>f1 in S2: {' ' + data[0]}</p>
         <p>f2 in S2: {' ' + data[1]}</p>
         <p>f1 in S1: {' ' + data[2]}</p>
