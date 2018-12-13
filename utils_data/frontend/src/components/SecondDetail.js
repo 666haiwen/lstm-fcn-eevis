@@ -22,7 +22,7 @@ class SecondDetail extends React.Component {
   render() {
     return(
       <div>
-        <TopologyPanel sampleId={this.props.sampleId} fault={this.props.fault} type={this.props.type}/>
+        <TopologyPanel sampleId={this.props.sampleId} fault={this.props.fault} />
         <DisMatrix disMatrix={this.props.disMatrix} sample={this.props.disSample}
           highLightSample={this.props.HighLightDisSample} />
       </div>

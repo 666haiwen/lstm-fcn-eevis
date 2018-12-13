@@ -3,8 +3,6 @@ const second = (
     showType: 'None',
     disMatrix: [],
     disSample: [],
-    idx: -1,
-    idy: -1,
     topoSample: [],
     fault: {i:-1, j:-1},
   }, action) => {
@@ -26,12 +24,6 @@ const second = (
           disMatrix: action.disMatrix,
           disSample: action.sample,
           topoSample: sampleIds,
-        };
-      case 'HIGH_LIGHT_DIS':
-        return {
-          ...state,
-          idx: action.idx,
-          idy: action.idy
         };
       case 'TOPO_SAMPLE':
         return {

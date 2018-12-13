@@ -9,6 +9,11 @@ const control = (
           ...state,
           type: action.v
         };
+      case 'SHOW_DIS_MATRIX':
+        return {
+          ...state,
+          sampleId: -1
+        };
       case 'DIS_MATRIX_SAMPLE':
         return {
           ...state,

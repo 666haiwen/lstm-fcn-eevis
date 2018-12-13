@@ -87,19 +87,7 @@ class Tsne extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (nextProps.idx != this.idx || nextProps.idy != this.idy) {
-      this.tsne.select('#sample-' + this.idx)
-        .classed('hightLight-x', false);
-      this.tsne.select('#sample-' + this.idy)
-        .classed('hightLight-y', false);
-      this.idx = nextProps.idx;
-      this.idy = nextProps.idy;
-      this.tsne.select('#sample-' + this.idx)
-        .classed('hightLight-x', true);
-      this.tsne.select('#sample-' + this.idy)
-        .classed('hightLight-y', true);
-    }
-    if (nextProps.sampleId != -1 && nextProps.sampleId != this.topoSample) {
+    if (nextProps.sampleId != -1) {
       let d;
       d3.select('#sample-' + nextProps.sampleId).each(v => d=v);
       this.addSample(d);
@@ -303,12 +291,10 @@ class Tsne extends React.Component {
 }
 
 Tsne.propTypes = {
-  idx: PropTypes.number.isRequired,
-  idy: PropTypes.number.isRequired,
+  sampleId: PropTypes.number.isRequired,
+  type: PropTypes.string.isRequired,
 };
 const mapStateToProps = (state) => ({
-  idx: state.second.idx,
-  idy: state.second.idy,
   type: state.control.type,
   sampleId: state.control.sampleId,
 });

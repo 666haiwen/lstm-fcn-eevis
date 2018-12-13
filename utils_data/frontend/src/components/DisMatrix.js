@@ -23,15 +23,23 @@ class DisMatrix extends React.Component {
   highLight(idx, idy) {
     const x = d3.event.pageX;
     const y = d3.event.pageY;
-    this.props.highLightSample(idx, idy);
     d3.select('.dis-row').selectAll('.dis-box')
         .classed('hightLight-y', false);
     d3.select('.dis-col').selectAll('.dis-box')
         .classed('hightLight-x', false);
-    console.log(d3.select('.dis-col').selectAll('.dix-box'));
     d3.select('.dis-col').select('#dis-box-col-' + idx)
         .classed('hightLight-x', true);
     d3.select('.dis-row').select('#dis-box-row-' + idy)
+        .classed('hightLight-y', true);
+    // Tsne highLight
+    const tsne = d3.select('.tsne-panel');
+    tsne.selectAll('.hightLight-x')
+        .classed('hightLight-x', false);
+    tsne.selectAll('hightLight-y')
+        .classed('hightLight-y', false);
+    tsne.select('#sample-' + idx)
+        .classed('hightLight-x', true);
+    tsne.select('#sample-' + idy)
         .classed('hightLight-y', true);
     api.getBusDistance(idx, idy).then(d => {
       const data = d.data;
@@ -50,7 +58,15 @@ class DisMatrix extends React.Component {
 
   drawDisMatrix(bus_dis, sample) {
     const hiddenTooltip = () => {
-      this.props.highLightSample(-1, -1);
+      const tsne = d3.select('.tsne-panel');
+      d3.select('.dis-row').selectAll('.dis-box')
+        .classed('hightLight-y', false);
+      d3.select('.dis-col').selectAll('.dis-box')
+        .classed('hightLight-x', false);
+      tsne.selectAll('.hightLight-x')
+          .classed('hightLight-x', false);
+      tsne.selectAll('.hightLight-y')
+          .classed('hightLight-y', false);
       this.setState({
         tooltip: <div className='dis-tooltip' hidden></div>
       });

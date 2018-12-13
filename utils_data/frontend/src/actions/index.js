@@ -20,12 +20,6 @@ export const ShowDisMatrix = (disMatrix, sample) => ({
   sample: sample
 });
 
-export const HighLightDisSample = (idx, idy) => ({
-  type: 'HIGH_LIGHT_DIS',
-  idx: idx,
-  idy: idy
-});
-
 export const ShowNone = () => ({
   type: 'SHOW_NONE'
 });
